@@ -1,0 +1,252 @@
+.top-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: 82px;
+  display: grid;
+  grid-template-columns: 220px minmax(420px, 1fr) 240px;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(227, 6, 44, 0.16);
+  backdrop-filter: blur(18px);
+}
+
+.top-menu__brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.top-menu__brand img {
+  flex: 0 0 auto;
+  width: 62px;
+  max-height: 40px;
+  object-fit: contain;
+}
+
+.top-menu__brand strong {
+  display: block;
+  font-size: 16px;
+}
+
+.top-menu__brand span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.top-menu__slides {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.top-menu__slides button {
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-menu__slides button span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 12px;
+}
+
+.top-menu__slides button em {
+  font-style: normal;
+}
+
+.top-menu__slides button.active {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(227, 6, 44, 0.22);
+}
+
+.top-menu__slides button.active span {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.top-menu__actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-menu__actions button,
+.top-menu__actions a {
+  min-width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+  background: #fff;
+}
+
+.top-menu__actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.top-menu__actions strong {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 950;
+  padding-inline: 4px;
+}
+
+.top-menu__actions .download-label {
+  padding-inline: 14px;
+  font-weight: 950;
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  min-height: 128px;
+  padding: 18px;
+  border-radius: 26px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metric-card span {
+  color: var(--muted);
+  font-weight: 950;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.metric-card strong {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.metric-card small {
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.metric-card--good strong {
+  color: var(--green);
+}
+
+.metric-card--alert strong {
+  color: var(--brand);
+}
+
+.metric-card--brand {
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: #fff;
+}
+
+.metric-card--brand span,
+.metric-card--brand small {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+  min-width: 0;
+}
+
+.chart-panel__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 6px;
+}
+
+.chart-panel h3 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.chart-panel p {
+  margin: 0;
+  max-width: 620px;
+  color: var(--muted);
+  font-weight: 650;
+  text-align: right;
+}
+
+.pill {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.insight-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 22px;
+  border-radius: 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 17px;
+  box-shadow: var(--shadow);
+}
+
+.insight-box strong {
+  color: var(--ink);
+}
