@@ -1,4 +1,4 @@
-import { DailyRow, FleetRow, MonthlyRow, Transportadora } from '../types';
+import { DailyRow, MonthlyRow, Transportadora, TruckRow } from '../types';
 
 export const brNumber = new Intl.NumberFormat('pt-BR');
 export const brPercent = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -12,7 +12,7 @@ export function displayCompany(value: string): string {
   const clean = normalize(value);
   if (clean === 'sofruta' || clean === 'so fruta') return 'SóFruta';
   if (clean === 'stella' || clean === 'stelladoro' || clean === 'stella doro') return 'StellaDóro';
-  if (clean === 'minas' || clean === 'minas mais' || clean === 'mm  gessi' || clean === 'mm gessi') return 'Minas+';
+  if (clean === 'minas' || clean === 'minas mais' || clean === 'mm  gessi') return 'Minas+';
   if (clean === 'goias') return 'Goiás';
   if (clean === 'nordeste mais') return 'Nordeste';
   return value.trim();
@@ -97,17 +97,21 @@ export function peakDaily(rows: DailyRow[], key: keyof Pick<DailyRow, 'proprio' 
   return [...rows].sort((a, b) => (b[key] as number) - (a[key] as number))[0];
 }
 
-export function fleetCountByCompany(fleet: FleetRow[], company: string): number {
-  return fleet
-    .filter((item) => item.contaComoCaminhao === 1)
-    .filter((item) => normalize(item.clienteDashboard) === normalize(company))
+export function truckCountByCompany(trucks: TruckRow[], company: string): number {
+  return trucks
+    .filter((truck) => truck.contaComoCaminhao === 1)
+    .filter((truck) => normalize(truck.clienteDashboard) === normalize(company))
     .length;
 }
 
-export function fleetTotalForCompanies(fleet: FleetRow[], companies: string[]): number {
+export function truckCountTotalForCompanies(trucks: TruckRow[], companies: string[]): number {
   const keys = new Set(companies.map((company) => normalize(company)));
-  return fleet
-    .filter((item) => item.contaComoCaminhao === 1)
-    .filter((item) => keys.has(normalize(item.clienteDashboard)))
+  return trucks
+    .filter((truck) => truck.contaComoCaminhao === 1)
+    .filter((truck) => keys.has(normalize(truck.clienteDashboard)))
     .length;
+}
+
+export function truckCountTotal(trucks: TruckRow[]): number {
+  return trucks.filter((truck) => truck.contaComoCaminhao === 1).length;
 }

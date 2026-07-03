@@ -1,0 +1,22 @@
+ZIP atualizado com nova página "Plano de ação" após Evolução.
+
+Arquivos principais alterados:
+- src/App.tsx
+- src/slides/SlidePlanoAcao.tsx
+- src/slides/SlideResultado.tsx
+- src/slides/SlideEvolucao.tsx
+- netlify.toml
+
+Para testar localmente:
+1. npm install
+2. npm run dev
+
+Para subir no GitHub/Netlify:
+1. git add .
+2. git commit -m "Adiciona plano de acao 5W2H"
+3. git push
+
+Netlify:
+- Build command: npm run build
+- Publish directory: dist
+- Base directory: vazio

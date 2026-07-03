@@ -485,6 +485,8 @@ const pontosPercentuaisFmt = (value: number) =>
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Resultado</span>
+            <h2>Big numbers</h2>
+            <p>Principais números da análise de terceiros no grupo.</p>
           </div>
 
           <div
@@ -529,6 +531,16 @@ const pontosPercentuaisFmt = (value: number) =>
                 {brPercent1.format(meta)}
               </div>
 
+              <div
+                style={{
+                  marginTop: 12,
+                  fontSize: 18,
+                  fontWeight: 800,
+                  opacity: 0.88,
+                }}
+              >
+                referência para leitura do resultado por empresa
+              </div>
             </div>
 
             {/* Tabela de % de terceiros por empresa */}
@@ -745,7 +757,7 @@ const pontosPercentuaisFmt = (value: number) =>
 
             <ChartPanel
               title="Composição por modalidade"
-              subtitle="Frota, Transpredi, Terceiro e FOB."
+              subtitle="Frota, Transpredi, Terceiro e FOB, sem duplicar soma interna."
               option={optionComposicaoPercentual}
               height={360}
             />

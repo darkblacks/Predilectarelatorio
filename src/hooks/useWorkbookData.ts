@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
-import { DailyRow, FleetRow, MonthlyRow, Transportadora, WorkbookData } from '../types';
+import { DailyRow, MonthlyRow, Transportadora, TruckRow, WorkbookData } from '../types';
 
-const DATA_URL = '/data/predilecta_banco_dados_frota.xlsx';
+const DATA_URL = '/data/predilecta_banco_dados_com_caminhoes.xlsx';
 const META_TERCEIROS = 0.25;
 
 function toDate(value: unknown): Date {
@@ -49,8 +49,8 @@ function parseMonthly(workbook: XLSX.WorkBook): MonthlyRow[] {
   })).filter((row) => row.cliente && row.transportadora);
 }
 
-function parseFleet(workbook: XLSX.WorkBook): FleetRow[] {
-  const sheet = workbook.Sheets['Frota'];
+function parseTrucks(workbook: XLSX.WorkBook): TruckRow[] {
+  const sheet = workbook.Sheets['Caminhoes'];
   if (!sheet) return [];
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { raw: true, defval: '' });
   return rows.map((row) => ({
@@ -61,7 +61,7 @@ function parseFleet(workbook: XLSX.WorkBook): FleetRow[] {
     clienteDashboard: text(row['Cliente dashboard']),
     modelo: text(row['Modelo']),
     ano: text(row['Ano']),
-    tipoFrota: text(row['Tipo frota']),
+    categoria: text(row['Categoria']),
     contaComoCaminhao: num(row['Conta como caminhão']),
   })).filter((row) => row.placa && row.clienteDashboard);
 }
@@ -136,7 +136,7 @@ export function useWorkbookData(): WorkbookData {
     loading: true,
     monthly: [],
     daily: [],
-    fleet: [],
+    trucks: [],
     metaTerceiros: META_TERCEIROS,
   });
 
@@ -151,7 +151,7 @@ export function useWorkbookData(): WorkbookData {
           loading: false,
           monthly: parseMonthly(workbook),
           daily: parseDaily(workbook),
-          fleet: parseFleet(workbook),
+          trucks: parseTrucks(workbook),
           metaTerceiros: META_TERCEIROS,
         });
       } catch (error) {

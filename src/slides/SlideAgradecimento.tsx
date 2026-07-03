@@ -9,7 +9,7 @@ export function SlideAgradecimento({ meta }: SlideAgradecimentoProps) {
         <img src="/assets/logo-predilecta.png" alt="Predilecta" />
         <h2>Meta de terceiros: {Math.round(meta * 100)}%</h2>
         <p>
-          Muito Obrigado por acompanhar nossa Analise.</p><p> Predilecta Feito com Amor
+          Esta apresentação foi organizada em quatro páginas: Apresentação, Resultado, Evolução e Agradecimento, utilizando a planilha do projeto como base de dados.
         </p>
       </div>
     </SlideWrapper>

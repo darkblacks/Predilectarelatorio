@@ -70,14 +70,14 @@ function getTerceiro(row: DailyRowCompat) {
   return Number(row.terceiro ?? 0);
 }
 
-function getFob(row: DailyRowCompat) {
+function getCif(row: DailyRowCompat) {
   return Number(row.fob ?? 0);
 }
 
 function getTotal(row: DailyRowCompat) {
   const proprio = getProprio(row);
   const terceiro = getTerceiro(row);
-  const cif = getFob(row);
+  const cif = getCif(row);
 
   return Number(row.total ?? proprio + terceiro + cif);
 }
@@ -108,7 +108,7 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
   const composicaoDiaria = ordered.map((row) => {
     const proprio = getProprio(row);
     const terceiro = getTerceiro(row);
-    const cif = getFob(row);
+    const cif = getCif(row);
     const total = getTotal(row);
 
     return {
@@ -295,7 +295,7 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
 
           <ChartPanel
             title="Composição diária por modalidade"
-            subtitle="Percentual diário por modalidade. "
+            subtitle="Percentual diário por modalidade. O dia 29/jun está destacado."
             option={optionComposicaoDiaria}
             height={440}
           />

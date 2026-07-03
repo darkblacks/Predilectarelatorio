@@ -7,7 +7,7 @@ interface TopMenuProps {
   onGoTo: (index: number) => void;
 }
 
-const DATA_FILE = '/data/predilecta_banco_dados_frota.xlsx';
+const DATA_FILE = '/data/predilecta_banco_dados_com_caminhoes.xlsx';
 
 export function TopMenu({ index, total, labels, onGoTo }: TopMenuProps) {
   return (

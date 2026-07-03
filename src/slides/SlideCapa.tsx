@@ -13,7 +13,8 @@ export function SlideCapa({ meta }: SlideCapaProps) {
           <span className="pill">Apresentação executiva</span>
           <h2>Redução de terceiros</h2>
           <p>
-Estudo detalhado com base no comportamento de carregamentos do Grupo Predilecta          </p>
+            Apresentação construída a partir do arquivo XLSX do projeto, com foco no resultado consolidado e na evolução diária da operação.
+          </p>
           <div className="cover-note">Meta do indicador de terceiros: {Math.round(meta * 100)}%.</div>
         </div>
       </div>

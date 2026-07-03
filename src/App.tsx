@@ -5,9 +5,10 @@ import { useWorkbookData } from './hooks/useWorkbookData';
 import { SlideCapa } from './slides/SlideCapa';
 import { SlideResultado } from './slides/SlideResultado';
 import { SlideEvolucao } from './slides/SlideEvolucao';
+import { SlidePlanoAcao } from './slides/SlidePlanoAcao';
 import { SlideAgradecimento } from './slides/SlideAgradecimento';
 
-const labels = ['Apresentação', 'Resultado', 'Evolução', 'Agradecimento'];
+const labels = ['Apresentação', 'Resultado', 'Evolução', 'Plano de ação', 'Agradecimento'];
 
 function Loading() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
       <SlideCapa key="capa" meta={metaTerceiros} />,
       <SlideResultado key="resultado" rows={monthly} meta={metaTerceiros} />,
       <SlideEvolucao key="evolucao" rows={daily} meta={metaTerceiros} />,
+      <SlidePlanoAcao key="plano-acao" />,
       <SlideAgradecimento key="agradecimento" meta={metaTerceiros} />,
     ],
     [monthly, daily, metaTerceiros]

@@ -24,7 +24,7 @@ export interface DailyRow {
   shareTerceiroAcumulado: number;
 }
 
-export interface FleetRow {
+export interface TruckRow {
   placa: string;
   chassi: string;
   renavam: string;
@@ -32,7 +32,7 @@ export interface FleetRow {
   clienteDashboard: string;
   modelo: string;
   ano: string;
-  tipoFrota: string;
+  categoria: string;
   contaComoCaminhao: number;
 }
 
@@ -41,7 +41,7 @@ export interface WorkbookData {
   error?: string;
   monthly: MonthlyRow[];
   daily: DailyRow[];
-  fleet: FleetRow[];
+  trucks: TruckRow[];
   metaTerceiros: number;
 }
 
