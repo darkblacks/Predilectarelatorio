@@ -485,8 +485,6 @@ const pontosPercentuaisFmt = (value: number) =>
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Resultado</span>
-            <h2>Big numbers</h2>
-            <p>Principais números da análise de terceiros no grupo.</p>
           </div>
 
           <div
