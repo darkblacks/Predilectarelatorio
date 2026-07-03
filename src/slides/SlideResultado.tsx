@@ -5,7 +5,6 @@ import { SlideWrapper } from '../components/layout/SlideWrapper';
 import { MonthlyRow, Transportadora } from '../types';
 import {
   brNumber,
-  brPercent0,
   companiesForMonth,
   companyMonthTotals,
   getMonthKeys,
@@ -22,7 +21,7 @@ interface SlideResultadoProps {
 }
 
 /**
- * Animação padrão das seções.
+ * Animação padrão das seções da página Resultado.
  */
 const reveal = {
   initial: { opacity: 0, y: 28 },
@@ -32,20 +31,40 @@ const reveal = {
 };
 
 /**
+ * Percentuais com uma casa decimal.
+ * Exemplo: 0.4654 -> 46,5%
+ */
+const brPercent1 = new Intl.NumberFormat('pt-BR', {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/**
  * Helpers de percentual.
+ * Os gráficos recebem valores de 0 a 100.
  */
 const pct = (value: number) => value * 100;
 const pctFmt = (value: number) => `${value.toFixed(1).replace('.', ',')}%`;
 
 /**
- * Cores dos indicadores.
- * Agora o terceiro está aplicado como vermelho em todos os gráficos.
+ * Diferença entre dois percentuais.
+ * Exemplo: 46,5% para 38,5% = 8,1 p.p.
+ */
+const ppFmt = (value: number) => `${(value * 100).toFixed(1).replace('.', ',')} p.p.`;
+const signedPpFmt = (value: number) => {
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${ppFmt(value)}`;
+};
+
+/**
+ * Paleta dos indicadores.
  */
 const colorProprio = '#2563eb'; // azul
 const colorFrota = '#2563eb'; // azul
 const colorTranspredi = '#60a5fa'; // azul claro
 const colorTerceiro = '#da0d0d'; // vermelho
-const colorCif = '#f59e0b'; // laranja
+const colorFob = '#f59e0b'; // laranja
 
 /**
  * Cores de leitura dos cards/tabela.
@@ -58,27 +77,27 @@ const soft = '#fff1f4';
 
 export function SlideResultado({ rows, meta }: SlideResultadoProps) {
   /**
-   * Meses da base.
+   * Identifica os meses existentes na aba Resultado.
+   * Se por algum motivo o Excel não carregar os meses, usa maio e junho como fallback.
    */
   const [maio = '2026-05', junho = '2026-06'] = getMonthKeys(rows);
 
   /**
-   * Totais gerais por modalidade.
+   * Totais por modalidade no grupo.
    */
   const maioTotals = transportadoraTotals(rows, maio);
   const junhoTotals = transportadoraTotals(rows, junho);
-
   const maioTotal = totalByMonth(rows, maio);
   const junhoTotal = totalByMonth(rows, junho);
 
   /**
-   * Interno = Frota própria + Transpredi.
+   * Operação interna = Frota própria + Transpredi.
    */
   const maioInterno = maioTotals.Frota + maioTotals.Transpredi;
   const junhoInterno = junhoTotals.Frota + junhoTotals.Transpredi;
 
   /**
-   * Participações gerais do grupo.
+   * Participação percentual do grupo.
    */
   const grupoTerceirosMaio = share(maioTotals.Terceiro, maioTotal);
   const grupoTerceirosJunho = share(junhoTotals.Terceiro, junhoTotal);
@@ -87,13 +106,13 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
   const grupoInternoJunho = share(junhoInterno, junhoTotal);
 
   /**
-   * Na planilha vem como FOB, mas na apresentação aparece como CIF.
+   * FOB é o cliente retirando. Mantido como FOB em todos os rótulos.
    */
-  const grupoCifMaio = share(maioTotals.FOB, maioTotal);
-  const grupoCifJunho = share(junhoTotals.FOB, junhoTotal);
+  const grupoFobMaio = share(maioTotals.FOB, maioTotal);
+  const grupoFobJunho = share(junhoTotals.FOB, junhoTotal);
 
   /**
-   * Ranking base de junho.
+   * Ranking base de junho, ordenado do menor para o maior percentual de terceiros.
    */
   const companies = companiesForMonth(rows, junho)
     .map((company) => {
@@ -111,7 +130,8 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
   const bestCompany = companies[0];
 
   /**
-   * Aliases para evitar problema com pequenas variações de nome.
+   * Algumas empresas aparecem com nomes diferentes entre bases.
+   * Esse alias ajuda a somar corretamente quando houver variações.
    */
   function getCompanyAliases(company: string): string[] {
     const clean = company
@@ -134,6 +154,9 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
     return [company];
   }
 
+  /**
+   * Normalização local usada apenas para não somar alias duplicado.
+   */
   function aliasKey(value: string): string {
     return value
       .normalize('NFD')
@@ -143,13 +166,15 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
       .toLowerCase();
   }
 
+  /**
+   * Soma por empresa considerando aliases, mas evitando duplicidade.
+   */
   function sumCompany(
     mesKey: string,
     company: string,
     transportadora?: Transportadora
   ): number {
     const aliases = getCompanyAliases(company);
-
     const uniqueAliases = aliases.filter((alias, index) => {
       return aliases.findIndex((item) => aliasKey(item) === aliasKey(alias)) === index;
     });
@@ -159,12 +184,14 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
     }, 0);
   }
 
+  /**
+   * Totais por empresa para maio/junho.
+   */
   function companyTotalsByAlias(mesKey: string, company: string) {
     const frota = sumCompany(mesKey, company, 'Frota');
     const transpredi = sumCompany(mesKey, company, 'Transpredi');
     const terceiro = sumCompany(mesKey, company, 'Terceiro');
     const fob = sumCompany(mesKey, company, 'FOB');
-
     const proprio = frota + transpredi;
     const total = proprio + terceiro + fob;
 
@@ -177,11 +204,13 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
       total,
       terceiroShare: share(terceiro, total),
       proprioShare: share(proprio, total),
+      fobShare: share(fob, total),
     };
   }
 
   /**
-   * Resultado por empresa, ordenado do maior para o menor % de terceiros em junho.
+   * Tabela de resultado por empresa.
+   * Ordenada do maior percentual de terceiros em junho para o menor.
    */
   const resultadoPorEmpresa = companiesForMonth(rows, junho)
     .map((company) => {
@@ -190,35 +219,51 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
 
       return {
         company,
+
+        // Comparativo de terceiros entre maio e junho.
         maioTerceiroShare: maioEmpresa.terceiroShare,
         junhoTerceiroShare: junhoEmpresa.terceiroShare,
-        maioTotal: maioEmpresa.total,
-        junhoTotal: junhoEmpresa.total,
         melhorou: junhoEmpresa.terceiroShare < maioEmpresa.terceiroShare,
+
+        // Base de junho para os gráficos finais.
+        junhoProprio: junhoEmpresa.proprio,
+        junhoTerceiro: junhoEmpresa.terceiro,
+        junhoFob: junhoEmpresa.fob,
+        junhoTotal: junhoEmpresa.total,
+        junhoProprioShare: junhoEmpresa.proprioShare,
+        junhoFobShare: junhoEmpresa.fobShare,
       };
     })
     .sort((a, b) => b.junhoTerceiroShare - a.junhoTerceiroShare);
 
+  /**
+   * Flags para colorir os cards gerais.
+   */
   const grupoTerceiroMelhorou = grupoTerceirosJunho < grupoTerceirosMaio;
   const grupoInternoMelhorou = grupoInternoJunho > grupoInternoMaio;
 
-  const reducaoTerceirosPercentual = share(
-    maioTotals.Terceiro - junhoTotals.Terceiro,
-    maioTotals.Terceiro
-  );
+  /**
+   * Métricas corrigidas:
+   * Antes estava calculando variação sobre volume absoluto:
+   * (1.025 - 828) / 1.025 = 19%.
+   * Agora calcula a diferença entre os percentuais mensais:
+   * 46,5% - 38,5% = 8,1 p.p.
+   */
+ const reducaoTerceirosPontos = grupoTerceirosMaio - grupoTerceirosJunho;
+const aumentoInternoPontos = grupoInternoJunho - grupoInternoMaio;
 
-  const aumentoInternoPercentual = share(
-    junhoInterno - maioInterno,
-    maioInterno
-  );
+const reducaoTerceirosPercentual = share(reducaoTerceirosPontos, grupoTerceirosMaio);
+const aumentoInternoPercentual = share(aumentoInternoPontos, grupoInternoMaio);
+
+const pontosPercentuaisFmt = (value: number) =>
+  `${(value * 100).toFixed(1).replace('.', ',')} p.p.`;
 
   /**
    * Gráfico 1:
-   * Próprio + Transpredi x Terceiro x CIF.
-   * Aqui cada indicador é uma série, então cada cor é aplicada corretamente.
+   * Comparação percentual entre operação interna, terceiros e FOB.
    */
   const optionInternoTerceiroPercentual = {
-    color: [colorProprio, colorTerceiro, colorCif],
+    color: [colorProprio, colorTerceiro, colorFob],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -254,10 +299,10 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
         itemStyle: { color: colorTerceiro, borderRadius: [10, 10, 0, 0] },
       },
       {
-        name: 'CIF',
+        name: 'FOB',
         type: 'bar',
-        data: [pct(grupoCifMaio), pct(grupoCifJunho)],
-        itemStyle: { color: colorCif, borderRadius: [10, 10, 0, 0] },
+        data: [pct(grupoFobMaio), pct(grupoFobJunho)],
+        itemStyle: { color: colorFob, borderRadius: [10, 10, 0, 0] },
       },
     ],
   };
@@ -265,12 +310,11 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
   /**
    * Gráfico 2:
    * Composição por modalidade.
-   * Antes ele usava uma cor por mês, então Terceiro não ficava vermelho.
-   * Agora cada modalidade é uma série própria, garantindo:
-   * Frota azul, Transpredi azul claro, Terceiro vermelho e CIF laranja.
+   * Cada modalidade é uma série própria para garantir a cor correta:
+   * Frota azul, Transpredi azul claro, Terceiro vermelho e FOB laranja.
    */
   const optionComposicaoPercentual = {
-    color: [colorFrota, colorTranspredi, colorTerceiro, colorCif],
+    color: [colorFrota, colorTranspredi, colorTerceiro, colorFob],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -321,23 +365,25 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
         itemStyle: { color: colorTerceiro, borderRadius: [10, 10, 0, 0] },
       },
       {
-        name: 'CIF',
+        name: 'FOB',
         type: 'bar',
         data: [
           pct(share(maioTotals.FOB, maioTotal)),
           pct(share(junhoTotals.FOB, junhoTotal)),
         ],
-        itemStyle: { color: colorCif, borderRadius: [10, 10, 0, 0] },
+        itemStyle: { color: colorFob, borderRadius: [10, 10, 0, 0] },
       },
     ],
   };
 
   /**
-   * Gráfico 3:
-   * Ranking por empresa.
+   * Gráfico 3A:
+   * Composição por empresa em percentual.
+   * Compara apenas os agrupamentos corretos:
+   * Próprio + Transpredi, Terceiro e FOB.
    */
   const optionRanking = {
-    color: [colorProprio, colorTerceiro],
+    color: [colorProprio, colorTerceiro, colorFob],
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -353,21 +399,78 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
     },
     yAxis: {
       type: 'category',
-      data: companies.map((item) => item.company),
+      data: resultadoPorEmpresa.map((item) => item.company),
       axisLine: { lineStyle: { color: '#ead5db' } },
     },
     series: [
       {
         name: 'Próprio + Transpredi',
         type: 'bar',
-        data: companies.map((item) => pct(item.proprioShare)),
-        itemStyle: { color: colorProprio, borderRadius: [0, 8, 8, 0] },
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => pct(item.junhoProprioShare)),
+        itemStyle: { color: colorProprio },
       },
       {
         name: 'Terceiro',
         type: 'bar',
-        data: companies.map((item) => pct(item.terceiroShare)),
-        itemStyle: { color: colorTerceiro, borderRadius: [0, 8, 8, 0] },
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => pct(item.junhoTerceiroShare)),
+        itemStyle: { color: colorTerceiro },
+      },
+      {
+        name: 'FOB',
+        type: 'bar',
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => pct(item.junhoFobShare)),
+        itemStyle: { color: colorFob, borderRadius: [0, 8, 8, 0] },
+      },
+    ],
+  };
+
+  /**
+   * Gráfico 3B:
+   * Mesmo comparativo, mas em quantidade absoluta de serviços.
+   */
+  const optionRankingQuantidade = {
+    color: [colorProprio, colorTerceiro, colorFob],
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      valueFormatter: (value: number) => brNumber.format(value),
+    },
+    legend: { bottom: 0, textStyle: { color: '#675056', fontWeight: 700 } },
+    grid: { left: 92, right: 18, top: 28, bottom: 52 },
+    xAxis: {
+      type: 'value',
+      axisLabel: { formatter: (value: number) => brNumber.format(value) },
+      splitLine: { lineStyle: { color: '#f3e2e6' } },
+    },
+    yAxis: {
+      type: 'category',
+      data: resultadoPorEmpresa.map((item) => item.company),
+      axisLine: { lineStyle: { color: '#ead5db' } },
+    },
+    series: [
+      {
+        name: 'Próprio + Transpredi',
+        type: 'bar',
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => item.junhoProprio),
+        itemStyle: { color: colorProprio },
+      },
+      {
+        name: 'Terceiro',
+        type: 'bar',
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => item.junhoTerceiro),
+        itemStyle: { color: colorTerceiro },
+      },
+      {
+        name: 'FOB',
+        type: 'bar',
+        stack: 'total',
+        data: resultadoPorEmpresa.map((item) => item.junhoFob),
+        itemStyle: { color: colorFob, borderRadius: [0, 8, 8, 0] },
       },
     ],
   };
@@ -393,6 +496,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
               gap: 18,
             }}
           >
+            {/* Meta centralizada */}
             <div
               style={{
                 background: `linear-gradient(135deg, ${colorTerceiro}, #a8001d)`,
@@ -424,7 +528,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
                   marginTop: 10,
                 }}
               >
-                {brPercent0.format(meta)}
+                {brPercent1.format(meta)}
               </div>
 
               <div
@@ -439,6 +543,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
               </div>
             </div>
 
+            {/* Tabela de % de terceiros por empresa */}
             <div
               style={{
                 background: '#fff',
@@ -519,6 +624,10 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
                 }}
               >
                 {resultadoPorEmpresa.map((item) => {
+                  /**
+                   * Se melhorou, maio fica vermelho e junho verde.
+                   * Se piorou, junho continua vermelho para chamar atenção.
+                   */
                   const maioColor = item.melhorou ? colorTerceiro : muted;
                   const junhoColor = item.melhorou ? green : colorTerceiro;
 
@@ -552,7 +661,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
                           letterSpacing: '-0.04em',
                         }}
                       >
-                        {brPercent0.format(item.maioTerceiroShare)}
+                        {brPercent1.format(item.maioTerceiroShare)}
                       </strong>
 
                       <strong
@@ -562,7 +671,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
                           letterSpacing: '-0.04em',
                         }}
                       >
-                        {brPercent0.format(item.junhoTerceiroShare)}
+                        {brPercent1.format(item.junhoTerceiroShare)}
                       </strong>
 
                       <span
@@ -579,16 +688,17 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
               </div>
             </div>
 
+            {/* Cards gerais do grupo */}
             <div className="metric-grid">
               <div className="metric-card">
                 <span>Grupo terceiros</span>
                 <strong>
                   <span style={{ color: grupoTerceiroMelhorou ? colorTerceiro : muted }}>
-                    {brPercent0.format(grupoTerceirosMaio)}
+                    {brPercent1.format(grupoTerceirosMaio)}
                   </span>
                   <span style={{ color: muted, margin: '0 10px' }}>→</span>
                   <span style={{ color: grupoTerceiroMelhorou ? green : colorTerceiro }}>
-                    {brPercent0.format(grupoTerceirosJunho)}
+                    {brPercent1.format(grupoTerceirosJunho)}
                   </span>
                 </strong>
                 <small>
@@ -601,31 +711,31 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
                 <span>Grupo próprio + Transpredi</span>
                 <strong>
                   <span style={{ color: grupoInternoMelhorou ? colorTerceiro : muted }}>
-                    {brPercent0.format(grupoInternoMaio)}
+                    {brPercent1.format(grupoInternoMaio)}
                   </span>
                   <span style={{ color: muted, margin: '0 10px' }}>→</span>
                   <span style={{ color: grupoInternoMelhorou ? green : colorTerceiro }}>
-                    {brPercent0.format(grupoInternoJunho)}
+                    {brPercent1.format(grupoInternoJunho)}
                   </span>
                 </strong>
                 <small>aumento da participação interna</small>
               </div>
 
               <div className="metric-card metric-card--good">
-                <span>Redução de terceiros</span>
-                <strong>{brPercent0.format(reducaoTerceirosPercentual)}</strong>
-                <small>
-                  {brNumber.format(maioTotals.Terceiro - junhoTotals.Terceiro)} serviços a menos com terceiros no grupo
-                </small>
-              </div>
+  <span>Redução de terceiros</span>
+  <strong>{brPercent1.format(reducaoTerceirosPontos)}</strong>
+  <small>
+    queda de {pontosPercentuaisFmt(reducaoTerceirosPontos)} no grupo
+  </small>
+</div>
 
-              <div className="metric-card metric-card--good">
-                <span>Aumento interno</span>
-                <strong>{brPercent0.format(aumentoInternoPercentual)}</strong>
-                <small>
-                  +{brNumber.format(junhoInterno - maioInterno)} serviços com próprio + Transpredi
-                </small>
-              </div>
+<div className="metric-card metric-card--good">
+  <span>Aumento interno</span>
+  <strong>{brPercent1.format(aumentoInternoPontos)}</strong>
+  <small>
+    ganho de {pontosPercentuaisFmt(aumentoInternoPontos)} com próprio + Transpredi
+  </small>
+</div>
             </div>
           </div>
         </motion.section>
@@ -639,7 +749,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
 
           <div className="charts-grid charts-grid--two">
             <ChartPanel
-              title="Próprio + Transpredi x Terceiro x CIF"
+              title="Próprio + Transpredi x Terceiro x FOB"
               subtitle="Comparativo percentual entre maio e junho."
               option={optionInternoTerceiroPercentual}
               height={360}
@@ -647,7 +757,7 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
 
             <ChartPanel
               title="Composição por modalidade"
-              subtitle="Frota, Transpredi, Terceiro e CIF, sem duplicar soma interna."
+              subtitle="Frota, Transpredi, Terceiro e FOB, sem duplicar soma interna."
               option={optionComposicaoPercentual}
               height={360}
             />
@@ -657,39 +767,48 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Ranking</span>
-            <h2>Quem ficou mais próximo da meta?</h2>
-            <p>Ranking de junho ordenado da menor para a maior participação de terceiros.</p>
+            <h2>Comparativo por empresa</h2>
+            <p>Próprio + Transpredi, Terceiro e FOB em percentual e em quantidade de serviços.</p>
           </div>
 
           <div className="metric-grid metric-grid--3">
             <MetricCard
               label="Mais próximo"
               value={bestCompany?.company ?? '—'}
-              helper={bestCompany ? `${brPercent0.format(bestCompany.terceiroShare)} de terceiros` : '—'}
+              helper={bestCompany ? `${brPercent1.format(bestCompany.terceiroShare)} de terceiros` : '—'}
               tone="good"
             />
 
             <MetricCard
               label="Distância para meta"
-              value={bestCompany ? `${((bestCompany.terceiroShare - meta) * 100).toFixed(0).replace('.', ',')} p.p.` : '—'}
+              value={bestCompany ? signedPpFmt(bestCompany.terceiroShare - meta) : '—'}
               helper="quanto faltou para 25%"
               tone="alert"
             />
 
             <MetricCard
               label="Próprio + Transpredi"
-              value={bestCompany ? brPercent0.format(bestCompany.proprioShare) : '—'}
+              value={bestCompany ? brPercent1.format(bestCompany.proprioShare) : '—'}
               helper="participação interna da empresa"
               tone="good"
             />
           </div>
 
-          <ChartPanel
-            title="Ranking de Próprio + Transpredi e Terceiro"
-            subtitle="Percentual por empresa em junho/26."
-            option={optionRanking}
-            height={430}
-          />
+          <div className="charts-grid charts-grid--two">
+            <ChartPanel
+              title="Composição por empresa (%)"
+              subtitle="Percentual de junho/26: Próprio + Transpredi, Terceiro e FOB."
+              option={optionRanking}
+              height={430}
+            />
+
+            <ChartPanel
+              title="Quantidade de serviços por empresa"
+              subtitle="Volume de junho/26 por modalidade."
+              option={optionRankingQuantidade}
+              height={430}
+            />
+          </div>
         </motion.section>
       </div>
     </SlideWrapper>

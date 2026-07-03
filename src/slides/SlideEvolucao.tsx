@@ -30,11 +30,11 @@ const reveal = {
  * Paleta pedida:
  * Próprio + Transpredi = azul
  * Terceiro = vermelho
- * CIF = laranja
+ * FOB = laranja
  */
 const colorProprio = '#2563eb'; // azul
 const colorTerceiro = '#da0d0d'; // vermelho
-const colorCif = '#f59e0b'; // laranja
+const colorFob = '#f59e0b'; // laranja
 
 const pct = (value: number) => value * 100;
 const pctFmt = (value: number) => `${value.toFixed(1).replace('.', ',')}%`;
@@ -70,14 +70,14 @@ function getTerceiro(row: DailyRowCompat) {
   return Number(row.terceiro ?? 0);
 }
 
-function getCif(row: DailyRowCompat) {
+function getFob(row: DailyRowCompat) {
   return Number(row.fob ?? 0);
 }
 
 function getTotal(row: DailyRowCompat) {
   const proprio = getProprio(row);
   const terceiro = getTerceiro(row);
-  const cif = getCif(row);
+  const cif = getFob(row);
 
   return Number(row.total ?? proprio + terceiro + cif);
 }
@@ -108,7 +108,7 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
   const composicaoDiaria = ordered.map((row) => {
     const proprio = getProprio(row);
     const terceiro = getTerceiro(row);
-    const cif = getCif(row);
+    const cif = getFob(row);
     const total = getTotal(row);
 
     return {
@@ -128,7 +128,7 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
    * Apenas 3 linhas:
    * - Próprio + Transpredi
    * - Terceiro
-   * - CIF
+   * - FOB
    */
   const optionComposicaoDiaria = {
     tooltip: {
@@ -178,13 +178,13 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
         itemStyle: { color: colorTerceiro },
       },
       {
-        name: 'CIF',
+        name: 'FOB',
         type: 'line',
         smooth: true,
         symbolSize: 6,
         data: composicaoDiaria.map((item) => item.cif),
-        lineStyle: { width: 4, color: colorCif },
-        itemStyle: { color: colorCif },
+        lineStyle: { width: 4, color: colorFob },
+        itemStyle: { color: colorFob },
       },
       {
         name: 'Dia 29',
@@ -290,7 +290,7 @@ export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
           <div className="story-section__heading">
             <span className="pill">Evolução</span>
             <h2>Composição diária por modalidade</h2>
-            <p>Próprio + Transpredi, Terceiro e CIF.</p>
+            <p>Próprio + Transpredi, Terceiro e FOB.</p>
           </div>
 
           <ChartPanel
