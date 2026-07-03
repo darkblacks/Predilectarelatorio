@@ -249,14 +249,11 @@ export function SlideResultado({ rows, meta }: SlideResultadoProps) {
    * Agora calcula a diferença entre os percentuais mensais:
    * 46,5% - 38,5% = 8,1 p.p.
    */
- const reducaoTerceirosPontos = grupoTerceirosMaio - grupoTerceirosJunho;
-const aumentoInternoPontos = grupoInternoJunho - grupoInternoMaio;
+  const reducaoTerceirosPontos = grupoTerceirosMaio - grupoTerceirosJunho;
+  const aumentoInternoPontos = grupoInternoJunho - grupoInternoMaio;
 
-const reducaoTerceirosPercentual = share(reducaoTerceirosPontos, grupoTerceirosMaio);
-const aumentoInternoPercentual = share(aumentoInternoPontos, grupoInternoMaio);
-
-const pontosPercentuaisFmt = (value: number) =>
-  `${(value * 100).toFixed(1).replace('.', ',')} p.p.`;
+  const pontosPercentuaisFmt = (value: number) =>
+    `${(value * 100).toFixed(1).replace('.', ',')} p.p.`;
 
   /**
    * Gráfico 1:
@@ -722,20 +719,20 @@ const pontosPercentuaisFmt = (value: number) =>
               </div>
 
               <div className="metric-card metric-card--good">
-  <span>Redução de terceiros</span>
-  <strong>{brPercent1.format(reducaoTerceirosPontos)}</strong>
-  <small>
-    queda de {pontosPercentuaisFmt(reducaoTerceirosPontos)} no grupo
-  </small>
-</div>
+                <span>Redução de terceiros</span>
+                <strong>{brPercent1.format(reducaoTerceirosPontos)}</strong>
+                <small>
+                  queda de {pontosPercentuaisFmt(reducaoTerceirosPontos)} no grupo
+                </small>
+              </div>
 
-<div className="metric-card metric-card--good">
-  <span>Aumento interno</span>
-  <strong>{brPercent1.format(aumentoInternoPontos)}</strong>
-  <small>
-    ganho de {pontosPercentuaisFmt(aumentoInternoPontos)} com próprio + Transpredi
-  </small>
-</div>
+              <div className="metric-card metric-card--good">
+                <span>Aumento interno</span>
+                <strong>{brPercent1.format(aumentoInternoPontos)}</strong>
+                <small>
+                  ganho de {pontosPercentuaisFmt(aumentoInternoPontos)} com próprio + Transpredi
+                </small>
+              </div>
             </div>
           </div>
         </motion.section>

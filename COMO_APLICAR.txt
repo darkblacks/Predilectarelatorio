@@ -1,22 +1,17 @@
-ZIP atualizado com nova página "Plano de ação" após Evolução.
+ZIP atualizado com a página Plano de ação revisada.
 
-Arquivos principais alterados:
-- src/App.tsx
+Principais alterações:
+- Layout com texto à esquerda e bloco visual/cubo animado à direita.
+- Textos quebrados em blocos menores para evitar parágrafos esticados.
+- Motion entrando da direita para a esquerda, em vez de só movimento vertical.
+- Indicadores principais usando % como valor principal.
+- Pontos percentuais ficaram na legenda/subtítulo, exemplo: +7,3 p.p.
+- SlideResultado atualizado para mostrar Redução/Aumento como ganho percentual no valor principal.
+
+Para aplicar manualmente, substitua a pasta do projeto pelos arquivos deste ZIP ou copie os arquivos:
 - src/slides/SlidePlanoAcao.tsx
 - src/slides/SlideResultado.tsx
-- src/slides/SlideEvolucao.tsx
-- netlify.toml
 
-Para testar localmente:
-1. npm install
-2. npm run dev
-
-Para subir no GitHub/Netlify:
-1. git add .
-2. git commit -m "Adiciona plano de acao 5W2H"
-3. git push
-
-Netlify:
-- Build command: npm run build
-- Publish directory: dist
-- Base directory: vazio
+Depois rode:
+npm install
+npm run dev
