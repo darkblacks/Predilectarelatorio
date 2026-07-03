@@ -531,16 +531,6 @@ const pontosPercentuaisFmt = (value: number) =>
                 {brPercent1.format(meta)}
               </div>
 
-              <div
-                style={{
-                  marginTop: 12,
-                  fontSize: 18,
-                  fontWeight: 800,
-                  opacity: 0.88,
-                }}
-              >
-                referência para leitura do resultado por empresa
-              </div>
             </div>
 
             {/* Tabela de % de terceiros por empresa */}
@@ -757,7 +747,7 @@ const pontosPercentuaisFmt = (value: number) =>
 
             <ChartPanel
               title="Composição por modalidade"
-              subtitle="Frota, Transpredi, Terceiro e FOB, sem duplicar soma interna."
+              subtitle="Frota, Transpredi, Terceiro e FOB."
               option={optionComposicaoPercentual}
               height={360}
             />
