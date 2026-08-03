@@ -1,0 +1,14 @@
+REPOSITORIO ORIGINAL
+https://github.com/darkblacks/Predilectarelatorio
+
+Para publicar esta versao no repositorio:
+
+1. Copie o conteudo deste projeto para dentro do clone do repositorio.
+2. No terminal, execute:
+
+git status
+git add .
+git commit -m "Torna mes e planilha dinamicos e inclui julho de 2026"
+git push origin main
+
+O Netlify deve iniciar um novo deploy automaticamente se estiver conectado a branch main.

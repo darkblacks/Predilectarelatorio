@@ -1,0 +1,8 @@
+[build]
+command = "npm run build"
+publish = "dist"
+
+[[headers]]
+for = "/data/*"
+  [headers.values]
+  Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
