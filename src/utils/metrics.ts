@@ -12,6 +12,9 @@ export const brPercent0 = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 0,
 });
 
+/** A partir de julho/2026, Transpredi passa a compor o grupo Terceiros. */
+export const TRANSPREDI_EM_TERCEIROS_DESDE = '2026-07';
+
 export function normalize(value: string): string {
   return value
     .normalize('NFD')
@@ -64,6 +67,10 @@ export function previousMonthKey(keys: string[], current: string): string | unde
   return index > 0 ? keys[index - 1] : undefined;
 }
 
+export function transprediContaComoTerceiro(mesKey: string): boolean {
+  return mesKey >= TRANSPREDI_EM_TERCEIROS_DESDE;
+}
+
 export function sumRows(
   rows: MonthlyRow[],
   filter?: Partial<{ mesKey: string; cliente: string; transportadora: Transportadora }>,
@@ -95,6 +102,24 @@ export function transportadoraTotals(
   };
 }
 
+export function operationalTotals(rows: MonthlyRow[], mesKey: string) {
+  const raw = transportadoraTotals(rows, mesKey);
+  const transprediEmTerceiros = transprediContaComoTerceiro(mesKey);
+  const frotaOperacional = raw.Frota + (transprediEmTerceiros ? 0 : raw.Transpredi);
+  const terceirosOperacional = raw.Terceiro + (transprediEmTerceiros ? raw.Transpredi : 0);
+  const baseOperacional = frotaOperacional + terceirosOperacional;
+  const totalGeral = baseOperacional + raw.FOB;
+
+  return {
+    ...raw,
+    frotaOperacional,
+    terceirosOperacional,
+    baseOperacional,
+    totalGeral,
+    transprediEmTerceiros,
+  };
+}
+
 export function companiesForMonth(rows: MonthlyRow[], mesKey: string): string[] {
   const map = new Map<string, string>();
   rows
@@ -111,9 +136,23 @@ export function companyMonthTotals(rows: MonthlyRow[], mesKey: string, company: 
   const transpredi = sumRows(rows, { mesKey, cliente: company, transportadora: 'Transpredi' });
   const terceiro = sumRows(rows, { mesKey, cliente: company, transportadora: 'Terceiro' });
   const fob = sumRows(rows, { mesKey, cliente: company, transportadora: 'FOB' });
-  const proprio = frota + transpredi;
-  const total = proprio + terceiro + fob;
-  return { frota, transpredi, terceiro, fob, proprio, total };
+  const transprediEmTerceiros = transprediContaComoTerceiro(mesKey);
+  const frotaOperacional = frota + (transprediEmTerceiros ? 0 : transpredi);
+  const terceirosOperacional = terceiro + (transprediEmTerceiros ? transpredi : 0);
+  const baseOperacional = frotaOperacional + terceirosOperacional;
+  const total = baseOperacional + fob;
+
+  return {
+    frota,
+    transpredi,
+    terceiro,
+    fob,
+    frotaOperacional,
+    terceirosOperacional,
+    baseOperacional,
+    total,
+    transprediEmTerceiros,
+  };
 }
 
 export function dayLabel(date: Date): string {
@@ -129,21 +168,32 @@ export function totalDaily(rows: DailyRow[]) {
     (acc, row) => {
       acc.frota += row.frota;
       acc.transpredi += row.transpredi;
-      acc.proprio += row.proprio;
       acc.terceiro += row.terceiro;
       acc.fob += row.fob;
+      acc.frotaOperacional += row.frotaOperacional;
+      acc.terceirosOperacional += row.terceirosOperacional;
+      acc.baseOperacional += row.baseOperacional;
       acc.total += row.total;
       return acc;
     },
-    { frota: 0, transpredi: 0, proprio: 0, terceiro: 0, fob: 0, total: 0 },
+    {
+      frota: 0,
+      transpredi: 0,
+      terceiro: 0,
+      fob: 0,
+      frotaOperacional: 0,
+      terceirosOperacional: 0,
+      baseOperacional: 0,
+      total: 0,
+    },
   );
 }
 
 export function peakDaily(
   rows: DailyRow[],
-  key: keyof Pick<DailyRow, 'proprio' | 'terceiro' | 'total'>,
+  key: keyof Pick<DailyRow, 'frotaOperacional' | 'terceirosOperacional' | 'baseOperacional' | 'total'>,
 ): DailyRow | undefined {
-  return [...rows].sort((a, b) => (b[key] as number) - (a[key] as number))[0];
+  return [...rows].sort((a, b) => b[key] - a[key])[0];
 }
 
 export function truckCountByCompany(trucks: TruckRow[], company: string): number {

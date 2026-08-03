@@ -3,9 +3,8 @@ import { MonthlyRow } from '../types';
 import {
   brPercent,
   monthLabelTitle,
+  operationalTotals,
   share,
-  totalByMonth,
-  transportadoraTotals,
 } from '../utils/metrics';
 
 interface SlideCapaProps {
@@ -16,16 +15,15 @@ interface SlideCapaProps {
 }
 
 export function SlideCapa({ rows, selectedMonth, previousMonth, meta }: SlideCapaProps) {
-  const totals = transportadoraTotals(rows, selectedMonth);
-  const total = totalByMonth(rows, selectedMonth);
-  const thirdShare = share(totals.Terceiro, total);
+  const totals = operationalTotals(rows, selectedMonth);
+  const thirdShare = share(totals.terceirosOperacional, totals.baseOperacional);
   const gap = thirdShare - meta;
 
   const previousShare = previousMonth
-    ? share(
-        transportadoraTotals(rows, previousMonth).Terceiro,
-        totalByMonth(rows, previousMonth),
-      )
+    ? (() => {
+        const previous = operationalTotals(rows, previousMonth);
+        return share(previous.terceirosOperacional, previous.baseOperacional);
+      })()
     : undefined;
 
   const improvement = previousShare === undefined ? undefined : previousShare - thirdShare;
@@ -35,7 +33,7 @@ export function SlideCapa({ rows, selectedMonth, previousMonth, meta }: SlideCap
     <SlideWrapper
       title="Dashboard Operacional"
       subtitle={`Grupo Predilecta · ${previousMonth ? `${monthLabelTitle(previousMonth)} x ` : ''}${monthLabelTitle(selectedMonth)}`}
-      footer="Use o seletor de mês no topo, as setas do teclado ou o scroll do mouse para navegar."
+      footer="Indicador: Frota x Terceiros. O FOB é exibido à parte e não entra na base percentual."
     >
       <div className="cover-grid cover-grid--simple">
         <div className="cover-logo-card">
@@ -43,10 +41,10 @@ export function SlideCapa({ rows, selectedMonth, previousMonth, meta }: SlideCap
         </div>
         <div className="cover-copy">
           <span className="pill">Apresentação executiva</span>
-          <h2>Redução de terceiros</h2>
+          <h2>Frota contra terceiros</h2>
           <p>
-            A apresentação mantém a identidade do projeto original e passa a ler qualquer mês
-            disponível na planilha padronizada.
+            A partir de julho de 2026, os carregamentos da Transpredi passam a compor
+            o grupo de terceiros. A meta permanece em 25% da base operacional.
           </p>
           <div className={`cover-note ${reached ? 'cover-note--good' : ''}`}>
             {monthLabelTitle(selectedMonth)} fechou em {brPercent.format(thirdShare)} de terceiros.

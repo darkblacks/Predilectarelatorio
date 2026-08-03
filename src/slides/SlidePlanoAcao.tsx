@@ -9,9 +9,8 @@ import {
   companiesForMonth,
   companyMonthTotals,
   monthLabelTitle,
+  operationalTotals,
   share,
-  totalByMonth,
-  transportadoraTotals,
 } from '../utils/metrics';
 
 interface SlidePlanoAcaoProps {
@@ -34,30 +33,30 @@ export function SlidePlanoAcao({
   previousMonth,
   meta,
 }: SlidePlanoAcaoProps) {
-  const totals = transportadoraTotals(rows, selectedMonth);
-  const total = totalByMonth(rows, selectedMonth);
-  const thirdShare = share(totals.Terceiro, total);
-  const targetThirdVolume = Math.floor(total * meta);
-  const reductionNeeded = Math.max(0, totals.Terceiro - targetThirdVolume);
+  const totals = operationalTotals(rows, selectedMonth);
+  const thirdShare = share(totals.terceirosOperacional, totals.baseOperacional);
+  const targetThirdVolume = Math.floor(totals.baseOperacional * meta);
+  const reductionNeeded = Math.max(0, totals.terceirosOperacional - targetThirdVolume);
   const gap = thirdShare - meta;
   const reached = gap <= 0;
 
-  const previousTotals = previousMonth ? transportadoraTotals(rows, previousMonth) : undefined;
-  const previousTotal = previousMonth ? totalByMonth(rows, previousMonth) : 0;
-  const previousShare = previousTotals ? share(previousTotals.Terceiro, previousTotal) : undefined;
+  const previousTotals = previousMonth ? operationalTotals(rows, previousMonth) : undefined;
+  const previousShare = previousTotals
+    ? share(previousTotals.terceirosOperacional, previousTotals.baseOperacional)
+    : undefined;
   const improvement = previousShare === undefined ? undefined : previousShare - thirdShare;
 
   const companyGaps = companiesForMonth(rows, selectedMonth)
     .map((company) => {
       const item = companyMonthTotals(rows, selectedMonth, company);
-      const companyShare = share(item.terceiro, item.total);
-      const companyTarget = Math.floor(item.total * meta);
+      const companyShare = share(item.terceirosOperacional, item.baseOperacional);
+      const companyTarget = Math.floor(item.baseOperacional * meta);
       return {
         company,
         share: companyShare,
         total: item.total,
-        third: item.terceiro,
-        excess: Math.max(0, item.terceiro - companyTarget),
+        third: item.terceirosOperacional,
+        excess: Math.max(0, item.terceirosOperacional - companyTarget),
       };
     })
     .filter((item) => item.total > 0)
@@ -85,12 +84,16 @@ export function SlidePlanoAcao({
         type: 'bar',
         data: companyGaps.map((item) => ({
           value: item.excess,
-          itemStyle: { color: item.excess === 0 ? '#37a169' : '#da0d0d', borderRadius: [0, 8, 8, 0] },
+          itemStyle: {
+            color: item.excess === 0 ? '#37a169' : '#da0d0d',
+            borderRadius: [0, 8, 8, 0],
+          },
         })),
         label: {
           show: true,
           position: 'right',
-          formatter: ({ value }: { value: number }) => value === 0 ? 'Meta' : brNumber.format(value),
+          formatter: ({ value }: { value: number }) =>
+            value === 0 ? 'Meta' : brNumber.format(value),
           color: '#2e1a20',
           fontWeight: 800,
         },
@@ -103,14 +106,14 @@ export function SlidePlanoAcao({
       eyebrow="Plano de ação"
       title={reached ? 'Sustentar o resultado' : 'Caminho para a meta'}
       subtitle={`Direcionamentos calculados com base em ${monthLabelTitle(selectedMonth)}.`}
-      footer={`Meta de terceiros: ${Math.round(meta * 100)}% · Os volumes são recalculados ao trocar o mês.`}
+      footer={`Meta de terceiros: ${Math.round(meta * 100)}% · Base: Frota + Terceiros, sem FOB.`}
     >
       <div className="story-page">
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Direcionamento</span>
             <h2>{reached ? 'O desafio agora é manter a disciplina' : `Faltam ${(gap * 100).toFixed(1).replace('.', ',')} p.p. para a meta`}</h2>
-            <p>O plano é atualizado automaticamente conforme o mês e a planilha selecionados.</p>
+            <p>Transpredi integra terceiros a partir de julho/2026.</p>
           </div>
 
           <div className="action-hero-grid">
@@ -121,7 +124,7 @@ export function SlidePlanoAcao({
               <small>
                 {reached
                   ? `${brPercent.format(Math.abs(gap))} abaixo da meta.`
-                  : `carregamentos de terceiros a substituir, mantendo o mesmo volume total.`}
+                  : 'carregamentos de terceiros a substituir por frota, mantendo a mesma base operacional.'}
               </small>
             </div>
 
@@ -131,7 +134,7 @@ export function SlidePlanoAcao({
                 <div>
                   <span>Limite mensal na base atual</span>
                   <strong>{brNumber.format(targetThirdVolume)} terceiros</strong>
-                  <p>Equivale a {brPercent.format(meta)} de {brNumber.format(total)} carregamentos.</p>
+                  <p>Equivale a {brPercent.format(meta)} de {brNumber.format(totals.baseOperacional)} carregamentos operacionais.</p>
                 </div>
               </div>
 
@@ -167,8 +170,8 @@ export function SlidePlanoAcao({
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Foco por filial</span>
-            <h2>Onde está o maior potencial de redução?</h2>
-            <p>Excesso estimado de terceiros para cada filial chegar a 25%, mantendo o volume atual.</p>
+            <h2>Onde está o maior potencial de conversão para frota?</h2>
+            <p>Excesso estimado de terceiros para cada filial chegar a 25% da base operacional.</p>
           </div>
 
           <div className="company-result-layout">

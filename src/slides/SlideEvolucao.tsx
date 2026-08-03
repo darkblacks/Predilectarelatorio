@@ -30,9 +30,9 @@ const reveal = {
 export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps) {
   const monthRows = filterDailyByMonth(rows, selectedMonth);
   const totals = totalDaily(monthRows);
-  const thirdShare = share(totals.terceiro, totals.total);
+  const thirdShare = share(totals.terceirosOperacional, totals.baseOperacional);
   const peakTotal = peakDaily(monthRows, 'total');
-  const peakThird = peakDaily(monthRows, 'terceiro');
+  const peakThird = peakDaily(monthRows, 'terceirosOperacional');
   const activeDays = monthRows.filter((row) => row.total > 0).length;
   const average = activeDays ? totals.total / activeDays : 0;
 
@@ -73,17 +73,17 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
     },
     series: [
       {
-        name: 'Frota + Transpredi',
+        name: 'Frota',
         type: 'bar',
         stack: 'volume',
-        data: monthRows.map((row) => row.proprio),
+        data: monthRows.map((row) => row.frotaOperacional),
         itemStyle: { color: '#2563eb' },
       },
       {
-        name: 'Terceiro',
+        name: 'Terceiros',
         type: 'bar',
         stack: 'volume',
-        data: monthRows.map((row) => row.terceiro),
+        data: monthRows.map((row) => row.terceirosOperacional),
         itemStyle: { color: '#da0d0d' },
       },
       {
@@ -95,6 +95,11 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
       },
     ],
   };
+
+  const maxAccumulated = Math.max(
+    ...monthRows.map((row) => row.shareTerceirosAcumulado * 100),
+    meta * 100,
+  );
 
   const optionAccumulated = {
     color: ['#da0d0d'],
@@ -112,7 +117,7 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
     yAxis: {
       type: 'value',
       min: 0,
-      max: Math.max(50, Math.ceil(Math.max(...monthRows.map((row) => row.shareTerceiroAcumulado * 100), meta * 100) / 10) * 10),
+      max: Math.max(50, Math.ceil(maxAccumulated / 10) * 10),
       axisLabel: { formatter: '{value}%' },
       splitLine: { lineStyle: { color: '#f3e2e6' } },
     },
@@ -122,7 +127,7 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
         type: 'line',
         smooth: true,
         symbolSize: 7,
-        data: monthRows.map((row) => row.shareTerceiroAcumulado * 100),
+        data: monthRows.map((row) => row.shareTerceirosAcumulado * 100),
         lineStyle: { width: 4, color: '#da0d0d' },
         itemStyle: { color: '#da0d0d' },
         areaStyle: { color: 'rgba(218, 13, 13, 0.08)' },
@@ -160,8 +165,11 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
         name: '% terceiros no dia',
         type: 'bar',
         data: monthRows.map((row) => ({
-          value: row.shareTerceiroDia * 100,
-          itemStyle: { color: row.shareTerceiroDia <= meta ? '#37a169' : '#da0d0d', borderRadius: [6, 6, 0, 0] },
+          value: row.shareTerceirosDia * 100,
+          itemStyle: {
+            color: row.shareTerceirosDia <= meta ? '#37a169' : '#da0d0d',
+            borderRadius: [6, 6, 0, 0],
+          },
         })),
         markLine: {
           symbol: 'none',
@@ -178,14 +186,14 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
       eyebrow="Evolução"
       title="Evolução diária"
       subtitle={`Ritmo operacional da unidade Predilecta em ${monthLabelTitle(selectedMonth)}.`}
-      footer="A evolução diária utiliza a aba Evolução da planilha padronizada."
+      footer="Frota x Terceiros. Desde julho/2026, Transpredi integra terceiros; FOB fica fora do percentual."
     >
       <div className="story-page">
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Ritmo do mês</span>
             <h2>O acumulado mostra a trajetória do indicador</h2>
-            <p>Volume diário e participação de terceiros na unidade Predilecta.</p>
+            <p>Volume diário e participação de terceiros sobre a base operacional.</p>
           </div>
 
           <div className="metric-grid">
@@ -198,13 +206,13 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
             <MetricCard
               label="Terceiros"
               value={brPercent.format(thirdShare)}
-              helper={`${brNumber.format(totals.terceiro)} carregamentos`}
+              helper={`${brNumber.format(totals.terceirosOperacional)} carregamentos · inclui Transpredi`}
               tone={thirdShare <= meta ? 'good' : 'alert'}
             />
             <MetricCard
               label="Média por dia ativo"
               value={average.toFixed(1).replace('.', ',')}
-              helper="Carregamentos"
+              helper="Carregamentos totais"
               tone="neutral"
             />
             <MetricCard
@@ -216,8 +224,8 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
           </div>
 
           <ChartPanel
-            title="Volume diário por modalidade"
-            subtitle="Frota + Transpredi, terceiros e FOB"
+            title="Volume diário por grupo"
+            subtitle="Frota, terceiros e FOB"
             option={optionDailyVolume}
             height={430}
           />
@@ -227,7 +235,7 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
           <div className="story-section__heading">
             <span className="pill">Indicador</span>
             <h2>O acumulado encerrou em {brPercent.format(thirdShare)}</h2>
-            <p>A linha tracejada representa a meta de terceiros.</p>
+            <p>A linha tracejada representa a meta de terceiros sobre Frota + Terceiros.</p>
           </div>
           <div className="charts-grid charts-grid--two">
             <ChartPanel
@@ -246,10 +254,12 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
           <div className="insight-row">
             <div className="insight-box">
               <strong>Maior uso de terceiros:</strong>{' '}
-              {peakThird ? `${brNumber.format(peakThird.terceiro)} carregamentos em ${dayLabel(peakThird.data)}.` : 'Sem dados.'}
+              {peakThird
+                ? `${brNumber.format(peakThird.terceirosOperacional)} carregamentos em ${dayLabel(peakThird.data)}.`
+                : 'Sem dados.'}
             </div>
             <div className="insight-box">
-              <strong>Operação interna:</strong> {brNumber.format(totals.proprio)} carregamentos no detalhamento diário.
+              <strong>Frota:</strong> {brNumber.format(totals.frotaOperacional)} carregamentos no detalhamento diário.
             </div>
           </div>
         </motion.section>

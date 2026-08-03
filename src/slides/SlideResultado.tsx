@@ -9,9 +9,8 @@ import {
   companiesForMonth,
   companyMonthTotals,
   monthLabelTitle,
+  operationalTotals,
   share,
-  totalByMonth,
-  transportadoraTotals,
 } from '../utils/metrics';
 
 interface SlideResultadoProps {
@@ -29,16 +28,12 @@ const reveal = {
 };
 
 const pct = (value: number) => value * 100;
-const colorProprio = '#2563eb';
 const colorFrota = '#2563eb';
-const colorTranspredi = '#60a5fa';
 const colorTerceiro = '#da0d0d';
 const colorFob = '#f59e0b';
 const green = '#37a169';
 const muted = '#7c6570';
 const ink = '#2e1a20';
-const line = '#f1dce2';
-const soft = '#fff1f4';
 
 export function SlideResultado({
   rows,
@@ -46,32 +41,38 @@ export function SlideResultado({
   previousMonth,
   meta,
 }: SlideResultadoProps) {
-  const currentTotals = transportadoraTotals(rows, selectedMonth);
-  const currentTotal = totalByMonth(rows, selectedMonth);
-  const currentInternal = currentTotals.Frota + currentTotals.Transpredi;
-  const currentThirdShare = share(currentTotals.Terceiro, currentTotal);
-  const currentInternalShare = share(currentInternal, currentTotal);
-  const currentFobShare = share(currentTotals.FOB, currentTotal);
+  const current = operationalTotals(rows, selectedMonth);
+  const currentThirdShare = share(current.terceirosOperacional, current.baseOperacional);
+  const currentFrotaShare = share(current.frotaOperacional, current.baseOperacional);
 
-  const previousTotals = previousMonth
-    ? transportadoraTotals(rows, previousMonth)
-    : { Frota: 0, Transpredi: 0, Terceiro: 0, FOB: 0 };
-  const previousTotal = previousMonth ? totalByMonth(rows, previousMonth) : 0;
-  const previousInternal = previousTotals.Frota + previousTotals.Transpredi;
-  const previousThirdShare = share(previousTotals.Terceiro, previousTotal);
-  const previousInternalShare = share(previousInternal, previousTotal);
-  const previousFobShare = share(previousTotals.FOB, previousTotal);
+  const previous = previousMonth
+    ? operationalTotals(rows, previousMonth)
+    : {
+        Frota: 0,
+        Transpredi: 0,
+        Terceiro: 0,
+        FOB: 0,
+        frotaOperacional: 0,
+        terceirosOperacional: 0,
+        baseOperacional: 0,
+        totalGeral: 0,
+        transprediEmTerceiros: false,
+      };
+  const previousThirdShare = share(previous.terceirosOperacional, previous.baseOperacional);
+  const previousFrotaShare = share(previous.frotaOperacional, previous.baseOperacional);
 
   const gapToTarget = currentThirdShare - meta;
   const thirdImprovement = previousMonth ? previousThirdShare - currentThirdShare : 0;
-  const volumeChange = previousTotal ? currentTotal / previousTotal - 1 : 0;
-  const thirdVolumeChange = previousTotals.Terceiro
-    ? currentTotals.Terceiro / previousTotals.Terceiro - 1
+  const baseVolumeChange = previous.baseOperacional
+    ? current.baseOperacional / previous.baseOperacional - 1
+    : 0;
+  const thirdVolumeChange = previous.terceirosOperacional
+    ? current.terceirosOperacional / previous.terceirosOperacional - 1
     : 0;
 
   const improvedAgainstPrevious = Boolean(previousMonth) && thirdImprovement > 0;
   const worsenedAgainstPrevious = Boolean(previousMonth) && thirdImprovement < 0;
-  const internalGainedShare = !previousMonth || currentInternalShare >= previousInternalShare;
+  const frotaGainedShare = !previousMonth || currentFrotaShare >= previousFrotaShare;
 
   const executiveTitle = gapToTarget <= 0
     ? 'Meta atingida'
@@ -83,17 +84,37 @@ export function SlideResultado({
 
   const companies = companiesForMonth(rows, selectedMonth)
     .map((company) => {
-      const current = companyMonthTotals(rows, selectedMonth, company);
-      const previous = previousMonth
+      const currentCompany = companyMonthTotals(rows, selectedMonth, company);
+      const previousCompany = previousMonth
         ? companyMonthTotals(rows, previousMonth, company)
-        : { frota: 0, transpredi: 0, terceiro: 0, fob: 0, proprio: 0, total: 0 };
+        : {
+            frota: 0,
+            transpredi: 0,
+            terceiro: 0,
+            fob: 0,
+            frotaOperacional: 0,
+            terceirosOperacional: 0,
+            baseOperacional: 0,
+            total: 0,
+            transprediEmTerceiros: false,
+          };
+
+      const currentShare = share(
+        currentCompany.terceirosOperacional,
+        currentCompany.baseOperacional,
+      );
+      const previousShare = share(
+        previousCompany.terceirosOperacional,
+        previousCompany.baseOperacional,
+      );
 
       return {
         company,
-        previousShare: share(previous.terceiro, previous.total),
-        currentShare: share(current.terceiro, current.total),
-        current,
-        improved: previous.total > 0 && share(current.terceiro, current.total) < share(previous.terceiro, previous.total),
+        previousShare,
+        currentShare,
+        current: currentCompany,
+        improved:
+          previousCompany.baseOperacional > 0 && currentShare < previousShare,
       };
     })
     .sort((a, b) => b.currentShare - a.currentShare);
@@ -103,7 +124,7 @@ export function SlideResultado({
     : [monthLabelTitle(selectedMonth)];
 
   const optionComposition = {
-    color: [colorFrota, colorTranspredi, colorTerceiro, colorFob],
+    color: [colorFrota, colorTerceiro],
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { bottom: 0, textStyle: { color: '#675056', fontWeight: 700 } },
     grid: { left: 48, right: 18, top: 28, bottom: 52 },
@@ -114,7 +135,7 @@ export function SlideResultado({
     },
     yAxis: {
       type: 'value',
-      max: 70,
+      max: 100,
       axisLabel: { formatter: '{value}%' },
       splitLine: { lineStyle: { color: '#f3e2e6' } },
     },
@@ -122,22 +143,16 @@ export function SlideResultado({
       {
         name: 'Frota',
         type: 'bar',
+        stack: 'base',
         data: previousMonth
-          ? [pct(share(previousTotals.Frota, previousTotal)), pct(share(currentTotals.Frota, currentTotal))]
-          : [pct(share(currentTotals.Frota, currentTotal))],
-        itemStyle: { color: colorFrota, borderRadius: [10, 10, 0, 0] },
+          ? [pct(previousFrotaShare), pct(currentFrotaShare)]
+          : [pct(currentFrotaShare)],
+        itemStyle: { color: colorFrota },
       },
       {
-        name: 'Transpredi',
+        name: 'Terceiros',
         type: 'bar',
-        data: previousMonth
-          ? [pct(share(previousTotals.Transpredi, previousTotal)), pct(share(currentTotals.Transpredi, currentTotal))]
-          : [pct(share(currentTotals.Transpredi, currentTotal))],
-        itemStyle: { color: colorTranspredi, borderRadius: [10, 10, 0, 0] },
-      },
-      {
-        name: 'Terceiro',
-        type: 'bar',
+        stack: 'base',
         data: previousMonth
           ? [pct(previousThirdShare), pct(currentThirdShare)]
           : [pct(currentThirdShare)],
@@ -148,14 +163,6 @@ export function SlideResultado({
           label: { formatter: `Meta ${Math.round(meta * 100)}%`, color: colorTerceiro },
           data: [{ yAxis: pct(meta) }],
         },
-      },
-      {
-        name: 'FOB',
-        type: 'bar',
-        data: previousMonth
-          ? [pct(previousFobShare), pct(currentFobShare)]
-          : [pct(currentFobShare)],
-        itemStyle: { color: colorFob, borderRadius: [10, 10, 0, 0] },
       },
     ],
   };
@@ -170,7 +177,10 @@ export function SlideResultado({
     grid: { left: 96, right: 34, top: 24, bottom: 34 },
     xAxis: {
       type: 'value',
-      max: Math.max(100, Math.ceil(Math.max(...companies.map((item) => pct(item.currentShare)), 0) / 10) * 10),
+      max: Math.max(
+        100,
+        Math.ceil(Math.max(...companies.map((item) => pct(item.currentShare)), 0) / 10) * 10,
+      ),
       axisLabel: { formatter: '{value}%' },
       splitLine: { lineStyle: { color: '#f3e2e6' } },
     },
@@ -185,7 +195,10 @@ export function SlideResultado({
         type: 'bar',
         data: companies.map((item) => ({
           value: pct(item.currentShare),
-          itemStyle: { color: item.currentShare <= meta ? green : colorTerceiro, borderRadius: [0, 8, 8, 0] },
+          itemStyle: {
+            color: item.currentShare <= meta ? green : colorTerceiro,
+            borderRadius: [0, 8, 8, 0],
+          },
         })),
         label: {
           show: true,
@@ -205,7 +218,7 @@ export function SlideResultado({
   };
 
   const optionVolume = {
-    color: [colorProprio, colorTerceiro, colorFob],
+    color: [colorFrota, colorTerceiro, colorFob],
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     legend: { bottom: 0, textStyle: { color: '#675056', fontWeight: 700 } },
     grid: { left: 48, right: 18, top: 28, bottom: 52 },
@@ -221,24 +234,28 @@ export function SlideResultado({
     },
     series: [
       {
-        name: 'Frota + Transpredi',
+        name: 'Frota',
         type: 'bar',
         stack: 'total',
-        data: previousMonth ? [previousInternal, currentInternal] : [currentInternal],
-        itemStyle: { color: colorProprio },
+        data: previousMonth
+          ? [previous.frotaOperacional, current.frotaOperacional]
+          : [current.frotaOperacional],
+        itemStyle: { color: colorFrota },
       },
       {
-        name: 'Terceiro',
+        name: 'Terceiros',
         type: 'bar',
         stack: 'total',
-        data: previousMonth ? [previousTotals.Terceiro, currentTotals.Terceiro] : [currentTotals.Terceiro],
+        data: previousMonth
+          ? [previous.terceirosOperacional, current.terceirosOperacional]
+          : [current.terceirosOperacional],
         itemStyle: { color: colorTerceiro },
       },
       {
         name: 'FOB',
         type: 'bar',
         stack: 'total',
-        data: previousMonth ? [previousTotals.FOB, currentTotals.FOB] : [currentTotals.FOB],
+        data: previousMonth ? [previous.FOB, current.FOB] : [current.FOB],
         itemStyle: { color: colorFob, borderRadius: [10, 10, 0, 0] },
       },
     ],
@@ -249,14 +266,16 @@ export function SlideResultado({
       eyebrow="Resultado"
       title="Resultado consolidado"
       subtitle={`Resultado mensal de ${monthLabelTitle(selectedMonth)} a partir da aba Resultado do Excel.`}
-      footer={`Meta de terceiros: ${Math.round(meta * 100)}% · Mês selecionado: ${monthLabelTitle(selectedMonth)}`}
+      footer={`Meta de terceiros: ${Math.round(meta * 100)}% · Base do indicador: Frota + Terceiros, sem FOB.`}
     >
       <div className="story-page">
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Resultado</span>
             <h2>Como fomos no mês?</h2>
-            <p>Leitura do indicador de terceiros contra a meta de 25%.</p>
+            <p>
+              Frota contra terceiros. Desde julho/2026, Transpredi está somada a terceiros.
+            </p>
           </div>
 
           <div className="result-hero-grid">
@@ -279,13 +298,13 @@ export function SlideResultado({
                     A participação de terceiros {thirdImprovement >= 0 ? 'caiu' : 'subiu'} de{' '}
                     <strong>{brPercent.format(previousThirdShare)}</strong> para{' '}
                     <strong>{brPercent.format(currentThirdShare)}</strong>, uma {thirdImprovement >= 0 ? 'melhora' : 'piora'} de{' '}
-                    <strong>{(Math.abs(thirdImprovement) * 100).toFixed(1).replace('.', ',')} p.p.</strong>. O volume total{' '}
-                    {volumeChange >= 0 ? 'cresceu' : 'recuou'} <strong>{brPercent.format(Math.abs(volumeChange))}</strong>,
-                    enquanto o volume absoluto de terceiros {thirdVolumeChange <= 0 ? 'recuou' : 'cresceu'}{' '}
+                    <strong>{(Math.abs(thirdImprovement) * 100).toFixed(1).replace('.', ',')} p.p.</strong>. A base operacional{' '}
+                    {baseVolumeChange >= 0 ? 'cresceu' : 'recuou'} <strong>{brPercent.format(Math.abs(baseVolumeChange))}</strong>,
+                    enquanto o volume de terceiros {thirdVolumeChange <= 0 ? 'recuou' : 'cresceu'}{' '}
                     <strong>{brPercent.format(Math.abs(thirdVolumeChange))}</strong>.
                   </>
                 ) : (
-                  <>O mês selecionado possui {brNumber.format(currentTotal)} carregamentos na base.</>
+                  <>O mês selecionado possui {brNumber.format(current.baseOperacional)} carregamentos na base operacional.</>
                 )}
               </p>
             </div>
@@ -295,25 +314,25 @@ export function SlideResultado({
             <MetricCard
               label="Meta de terceiros"
               value={brPercent.format(meta)}
-              helper="Referência do indicador"
+              helper="Referência da base operacional"
               tone="brand"
             />
             <MetricCard
-              label="Frota + Transpredi"
-              value={brPercent.format(currentInternalShare)}
-              helper={`${brNumber.format(currentInternal)} carregamentos`}
+              label="Frota"
+              value={brPercent.format(currentFrotaShare)}
+              helper={`${brNumber.format(current.frotaOperacional)} carregamentos`}
               tone="good"
             />
             <MetricCard
               label="Terceiros"
-              value={brNumber.format(currentTotals.Terceiro)}
-              helper={`${brPercent.format(currentThirdShare)} do total`}
+              value={brNumber.format(current.terceirosOperacional)}
+              helper={`${brPercent.format(currentThirdShare)} da base · inclui Transpredi`}
               tone={gapToTarget <= 0 ? 'good' : 'alert'}
             />
             <MetricCard
               label="Total do grupo"
-              value={brNumber.format(currentTotal)}
-              helper={`${brNumber.format(currentTotals.FOB)} FOB`}
+              value={brNumber.format(current.totalGeral)}
+              helper={`${brNumber.format(current.FOB)} FOB fora do indicador`}
               tone="neutral"
             />
           </div>
@@ -322,27 +341,27 @@ export function SlideResultado({
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Composição</span>
-            <h2>{internalGainedShare ? 'A operação interna ganhou participação' : 'A operação interna perdeu participação'}</h2>
-            <p>Comparação percentual e em quantidade entre o mês selecionado e o anterior.</p>
+            <h2>{frotaGainedShare ? 'A frota ganhou participação' : 'A frota perdeu participação'}</h2>
+            <p>Comparação percentual e em quantidade entre Frota e Terceiros.</p>
           </div>
           <div className="charts-grid charts-grid--two">
             <ChartPanel
-              title="Composição percentual"
-              subtitle="Frota, Transpredi, terceiros e FOB"
+              title="Composição da base operacional"
+              subtitle="Frota x Terceiros · FOB não entra no percentual"
               option={optionComposition}
               height={390}
             />
             <ChartPanel
-              title="Volume por modalidade"
-              subtitle="Quantidade de carregamentos"
+              title="Volume por grupo"
+              subtitle="Frota, terceiros e FOB"
               option={optionVolume}
               height={390}
             />
           </div>
           <div className="insight-row">
             <div className="insight-box">
-              <strong>Operação interna:</strong> {brNumber.format(currentInternal)} carregamentos, equivalente a{' '}
-              {brPercent.format(currentInternalShare)} do grupo.
+              <strong>Frota:</strong> {brNumber.format(current.frotaOperacional)} carregamentos, equivalente a{' '}
+              {brPercent.format(currentFrotaShare)} da base operacional.
             </div>
             <div className="insight-box">
               <strong>Distância da meta:</strong>{' '}
@@ -357,7 +376,7 @@ export function SlideResultado({
           <div className="story-section__heading">
             <span className="pill">Filiais</span>
             <h2>Resultado por empresa</h2>
-            <p>Participação de terceiros no mês selecionado, comparada ao mês anterior.</p>
+            <p>Participação de terceiros sobre Frota + Terceiros em cada filial.</p>
           </div>
 
           <div className="company-result-layout">

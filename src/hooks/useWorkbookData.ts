@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { DailyRow, MonthlyRow, Transportadora, TruckRow, WorkbookData } from '../types';
+import { monthKey, transprediContaComoTerceiro } from '../utils/metrics';
 
 const DATA_URL = './data/predilecta_banco_dados_com_caminhoes.xlsx';
 const META_TERCEIROS = 0.25;
@@ -147,16 +148,17 @@ function parseDaily(workbook: XLSX.WorkBook): DailyRow[] {
         cliente: launch.cliente,
         frota: 0,
         transpredi: 0,
-        proprio: 0,
         terceiro: 0,
         fob: 0,
+        frotaOperacional: 0,
+        terceirosOperacional: 0,
+        baseOperacional: 0,
         total: 0,
         shareFrotaDia: 0,
         shareTransprediDia: 0,
-        shareProprioDia: 0,
-        shareTerceiroDia: 0,
+        shareTerceirosDia: 0,
         shareFobDia: 0,
-        shareTerceiroAcumulado: 0,
+        shareTerceirosAcumulado: 0,
       });
     }
 
@@ -172,33 +174,38 @@ function parseDaily(workbook: XLSX.WorkBook): DailyRow[] {
   );
 
   let activeMonth = '';
-  let accumulatedTotal = 0;
+  let accumulatedBase = 0;
   let accumulatedThirdParty = 0;
 
   return ordered.map((row) => {
-    const rowMonth = `${row.data.getFullYear()}-${row.data.getMonth() + 1}`;
+    const rowMonth = monthKey(row.data);
     if (rowMonth !== activeMonth) {
       activeMonth = rowMonth;
-      accumulatedTotal = 0;
+      accumulatedBase = 0;
       accumulatedThirdParty = 0;
     }
 
-    const proprio = row.frota + row.transpredi;
-    const total = proprio + row.terceiro + row.fob;
-    accumulatedTotal += total;
-    accumulatedThirdParty += row.terceiro;
+    const transprediEmTerceiros = transprediContaComoTerceiro(rowMonth);
+    const frotaOperacional = row.frota + (transprediEmTerceiros ? 0 : row.transpredi);
+    const terceirosOperacional = row.terceiro + (transprediEmTerceiros ? row.transpredi : 0);
+    const baseOperacional = frotaOperacional + terceirosOperacional;
+    const total = baseOperacional + row.fob;
+
+    accumulatedBase += baseOperacional;
+    accumulatedThirdParty += terceirosOperacional;
 
     return {
       ...row,
-      proprio,
+      frotaOperacional,
+      terceirosOperacional,
+      baseOperacional,
       total,
-      shareFrotaDia: total === 0 ? 0 : row.frota / total,
+      shareFrotaDia: baseOperacional === 0 ? 0 : frotaOperacional / baseOperacional,
       shareTransprediDia: total === 0 ? 0 : row.transpredi / total,
-      shareProprioDia: total === 0 ? 0 : proprio / total,
-      shareTerceiroDia: total === 0 ? 0 : row.terceiro / total,
+      shareTerceirosDia: baseOperacional === 0 ? 0 : terceirosOperacional / baseOperacional,
       shareFobDia: total === 0 ? 0 : row.fob / total,
-      shareTerceiroAcumulado:
-        accumulatedTotal === 0 ? 0 : accumulatedThirdParty / accumulatedTotal,
+      shareTerceirosAcumulado:
+        accumulatedBase === 0 ? 0 : accumulatedThirdParty / accumulatedBase,
     };
   });
 }

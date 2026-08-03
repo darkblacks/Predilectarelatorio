@@ -3,18 +3,35 @@ VALIDACAO — JULHO/2026
 Base: public/data/predilecta_banco_dados_com_caminhoes.xlsx
 Aba: Resultado
 Meta de terceiros: 25,0%
+Regra: Frota x Terceiros; FOB fora do percentual.
+Transpredi: compõe Terceiros a partir de julho/2026.
 
+DADOS BRUTOS DE JULHO
 Frota: 1.344
 Transpredi: 187
-Frota + Transpredi: 1.531
 Terceiro: 798
 FOB: 128
-Total: 2.457
+Total geral: 2.457
 
-Participacao de terceiros: 798 / 2.457 = 32,4786% = 32,5%
-Distancia da meta: 32,4786% - 25,0% = 7,4786 p.p. = 7,5 p.p.
+AGRUPAMENTO DO INDICADOR
+Frota operacional: 1.344
+Terceiros operacional: 798 + 187 = 985
+Base operacional: 1.344 + 985 = 2.329
 
-Junho/2026: 828 / 2.153 = 38,4579%
-Melhora em julho: 38,4579% - 32,4786% = 5,9793 p.p. = 6,0 p.p.
+Participacao de terceiros: 985 / 2.329 = 42,2928% = 42,3%
+Participacao da frota: 1.344 / 2.329 = 57,7072% = 57,7%
+Distancia da meta: 42,2928% - 25,0% = 17,2928 p.p. = 17,3 p.p.
 
-Conclusao: houve melhora relevante, mas julho terminou acima da meta.
+COMPARACAO COM JUNHO/2026
+Em junho, Transpredi ainda compunha Frota.
+Frota operacional: 1.024 + 191 = 1.215
+Terceiros operacional: 828
+Base operacional: 1.215 + 828 = 2.043
+Participacao de terceiros em junho: 828 / 2.043 = 40,5286% = 40,5%
+Variacao em julho: 42,2928% - 40,5286% = 1,7642 p.p. = piora de 1,8 p.p.
+
+META EM VOLUME
+Limite de terceiros: piso de 2.329 x 25% = 582
+Conversao necessaria: 985 - 582 = 403 carregamentos de terceiros para frota
+
+Conclusao: julho terminou acima da meta e piorou frente a junho pela regra correta do indicador.

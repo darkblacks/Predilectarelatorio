@@ -59,7 +59,7 @@ A página de evolução filtra automaticamente o mês selecionado e reinicia o a
 
 A estrutura original foi mantida e continua sendo lida pelo projeto.
 
-## Meta
+## Meta e regra do indicador
 
 A meta de participação de terceiros está configurada em **25%** no arquivo:
 
@@ -73,20 +73,37 @@ Constante:
 const META_TERCEIROS = 0.25;
 ```
 
+O indicador é calculado como **Terceiros / (Frota + Terceiros)**. O FOB é exibido separadamente e não entra no percentual.
+
+A classificação da Transpredi muda por período:
+
+- Até junho/2026: Transpredi compõe **Frota**.
+- A partir de julho/2026: Transpredi compõe **Terceiros**.
+
+A regra está centralizada em `src/utils/metrics.ts`, na constante:
+
+```ts
+export const TRANSPREDI_EM_TERCEIROS_DESDE = '2026-07';
+```
+
 ## Resultado de julho de 2026
 
-- Total: **2.457 carregamentos**
+- Total geral: **2.457 carregamentos**
 - Frota: **1.344**
 - Transpredi: **187**
-- Frota + Transpredi: **1.531**
-- Terceiros: **798**
-- FOB: **128**
-- Participação de terceiros: **32,5%**
+- Terceiros informados na planilha: **798**
+- Terceiros para o indicador: **985** (`798 + 187`)
+- Base operacional Frota + Terceiros: **2.329**
+- FOB fora do indicador: **128**
+- Participação de terceiros: **42,3%**
+- Participação da frota: **57,7%**
 - Meta: **25,0%**
-- Distância da meta: **7,5 pontos percentuais acima**
-- Evolução contra junho: **melhora de 6,0 pontos percentuais**
+- Distância da meta: **17,3 pontos percentuais acima**
+- Junho/2026: **40,5%** de terceiros pela regra vigente naquele mês
+- Evolução: **piora de 1,8 ponto percentual** em julho
+- Conversão necessária para atingir 25%, mantendo a base: **403 carregamentos** de terceiros para frota
 
-Conclusão: **o resultado melhorou, mas a meta ainda não foi atingida**.
+Conclusão: **julho ficou acima da meta e piorou em relação a junho após a classificação correta da Transpredi**.
 
 ## Netlify
 

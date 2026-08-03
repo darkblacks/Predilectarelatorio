@@ -12,16 +12,17 @@ export interface DailyRow {
   cliente: string;
   frota: number;
   transpredi: number;
-  proprio: number;
   terceiro: number;
   fob: number;
+  frotaOperacional: number;
+  terceirosOperacional: number;
+  baseOperacional: number;
   total: number;
   shareFrotaDia: number;
   shareTransprediDia: number;
-  shareProprioDia: number;
-  shareTerceiroDia: number;
+  shareTerceirosDia: number;
   shareFobDia: number;
-  shareTerceiroAcumulado: number;
+  shareTerceirosAcumulado: number;
 }
 
 export interface TruckRow {
