@@ -1,20 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { TopMenu } from './components/layout/TopMenu';
-import { useWorkbookData } from './hooks/useWorkbookData';
 import { SlideCapa } from './slides/SlideCapa';
-import { SlideResultado } from './slides/SlideResultado';
-import { SlideEvolucao } from './slides/SlideEvolucao';
-import { SlidePlanoAcao } from './slides/SlidePlanoAcao';
-import { SlideAgradecimento } from './slides/SlideAgradecimento';
+import { SlidePergunta } from './slides/SlidePergunta';
+import { SlideJunhoJulho } from './slides/SlideJunhoJulho';
+import { SlideProdutividadeUnidades } from './slides/SlideProdutividadeUnidades';
+import { SlideMatrizProdutividade } from './slides/SlideMatrizProdutividade';
+import { SlidePicosOperacao } from './slides/SlidePicosOperacao';
+import { SlideOportunidades } from './slides/SlideOportunidades';
+import { SlideKPIs } from './slides/SlideKPIs';
+import { useProductivityWorkbook } from './slides/useProductivityWorkbook';
 
-const labels = ['Apresentação', 'Resultado', 'Evolução', 'Plano de ação', 'Agradecimento'];
+const labels = [
+  'Produtividade',
+  'Pergunta',
+  'Junho × Julho',
+  'Por fábrica',
+  'Matriz',
+  'Picos',
+  'Oportunidades',
+  'KPIs',
+];
 
 function Loading() {
   return (
     <div className="loading-screen">
       <img src="/assets/logo-predilecta.png" alt="Predilecta" />
-      <span>Carregando dados do XLSX...</span>
+      <span>Carregando Controle Diário de Aproveitamento da Frota Julho_26.xlsx...</span>
     </div>
   );
 }
@@ -25,20 +37,28 @@ export default function App() {
   const {
     loading,
     error,
-    monthly,
+    june,
+    july,
+    units,
     daily,
+    dailyByUnit,
+    groupVehicles,
     metaTerceiros,
-  } = useWorkbookData();
+    dataNotes,
+  } = useProductivityWorkbook();
 
   const slides = useMemo(
     () => [
-      <SlideCapa key="capa" meta={metaTerceiros} />,
-      <SlideResultado key="resultado" rows={monthly} meta={metaTerceiros} />,
-      <SlideEvolucao key="evolucao" rows={daily} meta={metaTerceiros} />,
-      <SlidePlanoAcao key="plano-acao" />,
-      <SlideAgradecimento key="agradecimento" meta={metaTerceiros} />,
+      <SlideCapa key="capa" />,
+      <SlidePergunta key="pergunta" meta={metaTerceiros} june={june} july={july} units={units} />,
+      <SlideJunhoJulho key="junho-julho" june={june} july={july} />,
+      <SlideProdutividadeUnidades key="produtividade-unidades" units={units} dataNotes={dataNotes} />,
+      <SlideMatrizProdutividade key="matriz" units={units} />,
+      <SlidePicosOperacao key="picos" daily={daily} dailyByUnit={dailyByUnit} />,
+      <SlideOportunidades key="oportunidades" units={units} />,
+      <SlideKPIs key="kpis" july={july} groupVehicles={groupVehicles} meta={metaTerceiros} dataNotes={dataNotes} />,
     ],
-    [monthly, daily, metaTerceiros]
+    [june, july, units, daily, dailyByUnit, groupVehicles, metaTerceiros, dataNotes]
   );
 
   useEffect(() => {
@@ -73,16 +93,8 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <TopMenu
-        index={index}
-        total={slides.length}
-        labels={labels}
-        onGoTo={setIndex}
-      />
-
-      <AnimatePresence mode="wait">
-        {slides[index]}
-      </AnimatePresence>
+      <TopMenu index={index} total={slides.length} labels={labels} onGoTo={setIndex} />
+      <AnimatePresence mode="wait">{slides[index]}</AnimatePresence>
     </div>
   );
 }

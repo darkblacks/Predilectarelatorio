@@ -7,7 +7,7 @@ interface TopMenuProps {
   onGoTo: (index: number) => void;
 }
 
-const DATA_FILE = '/data/predilecta_banco_dados_com_caminhoes.xlsx';
+const DATA_FILE = '/data/Controle%20Di%C3%A1rio%20de%20Aproveitamento%20da%20Frota%20Julho_26.xlsx';
 
 export function TopMenu({ index, total, labels, onGoTo }: TopMenuProps) {
   return (
@@ -16,17 +16,19 @@ export function TopMenu({ index, total, labels, onGoTo }: TopMenuProps) {
         <img src="/assets/logo-predilecta.png" alt="Predilecta" />
         <div>
           <strong>Predilecta</strong>
-          <span>Apresentação operacional</span>
+          <span>Produtividade da frota</span>
         </div>
       </div>
-      <div className="top-menu__slides" aria-label="Navegação dos slides">
+
+      <div className="top-menu__slides" aria-label="Navegação dos slides" style={{ justifyContent: 'flex-start', overflowX: 'auto', scrollbarWidth: 'thin' }}>
         {labels.map((label, itemIndex) => (
-          <button key={label} className={itemIndex === index ? 'active' : ''} onClick={() => onGoTo(itemIndex)}>
+          <button key={label} className={itemIndex === index ? 'active' : ''} onClick={() => onGoTo(itemIndex)} style={{ padding: '7px 10px' }}>
             <span>{itemIndex + 1}</span>
             <em>{label}</em>
           </button>
         ))}
       </div>
+
       <div className="top-menu__actions">
         <a href={DATA_FILE} download title="Baixar XLSX usado no dashboard">
           <FileSpreadsheet size={18} />
