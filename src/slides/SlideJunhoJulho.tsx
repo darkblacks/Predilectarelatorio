@@ -9,10 +9,10 @@ interface SlideJunhoJulhoProps {
 }
 
 const reveal = {
-  initial: { opacity: 0, y: 26 },
+  initial: { opacity: 0, y: 20 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.2 },
-  transition: { duration: 0.45 },
+  viewport: { once: true, amount: 0.15 },
+  transition: { duration: 0.4 },
 };
 
 const ink = '#2e1a20';
@@ -42,21 +42,6 @@ export function SlideJunhoJulho(
 ) {
   /*
    * CONSOLIDADO MENSAL VALIDADO
-   *
-   * Junho:
-   * Demanda  = 2.153
-   * Próprio  = 1.215
-   * Terceiro = 828
-   * FOB      = 110
-   *
-   * Julho:
-   * Demanda  = 2.457
-   * Próprio  = 1.344
-   * Terceiro = 985
-   * FOB      = 128
-   *
-   * Este slide usa o consolidado mensal.
-   * Não utiliza o recorte comparativo de 01 a 17.
    */
 
   const june = {
@@ -72,10 +57,6 @@ export function SlideJunhoJulho(
     thirdParty: 985,
     fob: 128,
   };
-
-  /*
-   * VARIAÇÕES
-   */
 
   const demandVariation = variation(
     june.total,
@@ -96,10 +77,6 @@ export function SlideJunhoJulho(
     june.fob,
     july.fob
   );
-
-  /*
-   * PARTICIPAÇÃO NA DEMANDA
-   */
 
   const ownShareJune = share(
     june.own,
@@ -131,10 +108,6 @@ export function SlideJunhoJulho(
     july.total
   );
 
-  /*
-   * GRÁFICO — VOLUME
-   */
-
   const optionVolumes = {
     tooltip: {
       trigger: 'axis',
@@ -152,15 +125,14 @@ export function SlideJunhoJulho(
     },
 
     grid: {
-      left: 58,
-      right: 18,
-      top: 28,
-      bottom: 54,
+      left: 52,
+      right: 16,
+      top: 22,
+      bottom: 50,
     },
 
     xAxis: {
       type: 'category',
-
       data: [
         'Junho/26',
         'Julho/26',
@@ -195,7 +167,7 @@ export function SlideJunhoJulho(
 
         itemStyle: {
           color: orange,
-          borderRadius: [9, 9, 0, 0],
+          borderRadius: [8, 8, 0, 0],
         },
       },
 
@@ -210,7 +182,7 @@ export function SlideJunhoJulho(
 
         itemStyle: {
           color: blue,
-          borderRadius: [9, 9, 0, 0],
+          borderRadius: [8, 8, 0, 0],
         },
       },
 
@@ -225,7 +197,7 @@ export function SlideJunhoJulho(
 
         itemStyle: {
           color: red,
-          borderRadius: [9, 9, 0, 0],
+          borderRadius: [8, 8, 0, 0],
         },
       },
 
@@ -240,15 +212,11 @@ export function SlideJunhoJulho(
 
         itemStyle: {
           color: '#f6b73c',
-          borderRadius: [9, 9, 0, 0],
+          borderRadius: [8, 8, 0, 0],
         },
       },
     ],
   };
-
-  /*
-   * GRÁFICO — PARTICIPAÇÃO
-   */
 
   const optionShares = {
     tooltip: {
@@ -270,10 +238,10 @@ export function SlideJunhoJulho(
     },
 
     grid: {
-      left: 52,
-      right: 18,
-      top: 28,
-      bottom: 54,
+      left: 48,
+      right: 16,
+      top: 22,
+      bottom: 50,
     },
 
     xAxis: {
@@ -312,7 +280,7 @@ export function SlideJunhoJulho(
         name: 'Próprio',
         type: 'line',
         smooth: true,
-        symbolSize: 10,
+        symbolSize: 9,
 
         data: [
           ownShareJune * 100,
@@ -337,7 +305,7 @@ export function SlideJunhoJulho(
         name: 'Terceiro',
         type: 'line',
         smooth: true,
-        symbolSize: 10,
+        symbolSize: 9,
 
         data: [
           thirdPartyShareJune * 100,
@@ -380,10 +348,6 @@ export function SlideJunhoJulho(
       },
     ],
   };
-
-  /*
-   * CARDS
-   */
 
   const cards = [
     {
@@ -457,7 +421,10 @@ export function SlideJunhoJulho(
     >
       <div className="story-page">
 
-        {/* CARDS */}
+        {/*
+          UMA ÚNICA SECTION:
+          evita os espaços gigantes do CSS story-section.
+        */}
         <motion.section
           className="story-section"
           {...reveal}
@@ -465,199 +432,212 @@ export function SlideJunhoJulho(
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns:
-                'repeat(4, minmax(0, 1fr))',
-              gap: 14,
-            }}
-          >
-            {cards.map((card) => (
-              <div
-                key={card.label}
-                style={{
-                  background: '#fff',
-                  border: `1px solid ${line}`,
-                  borderRadius: 26,
-                  padding: 20,
-                  boxShadow:
-                    '0 14px 42px rgba(129,0,27,.08)',
-                }}
-              >
-                <span
-                  style={{
-                    color: muted,
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    fontSize: 11,
-                    letterSpacing: '.08em',
-                  }}
-                >
-                  {card.label}
-                </span>
-
-                <strong
-                  style={{
-                    display: 'block',
-                    color: ink,
-                    fontSize: 27,
-                    marginTop: 9,
-                    letterSpacing: '-0.04em',
-                  }}
-                >
-                  {card.value}
-                </strong>
-
-                <span
-                  style={{
-                    display: 'block',
-                    color: card.color,
-                    fontSize: 22,
-                    fontWeight: 950,
-                    marginTop: 7,
-                  }}
-                >
-                  {card.delta}
-                </span>
-              </div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* LEITURA */}
-        <motion.section
-          className="story-section"
-          {...reveal}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns:
-                'minmax(0, 1.2fr) minmax(330px, .8fr)',
               gap: 18,
             }}
           >
+
+            {/* BIG NUMBERS */}
             <div
               style={{
-                padding: '24px 26px',
-                borderRadius: 30,
-
-                background:
-                  'linear-gradient(135deg, #fff, #fff1f4)',
-
-                border: `1px solid ${line}`,
+                display: 'grid',
+                gridTemplateColumns:
+                  'repeat(4, minmax(0, 1fr))',
+                gap: 12,
               }}
             >
-              <strong
-                style={{
-                  color: ink,
-                  fontSize: 27,
-                  letterSpacing: '-0.04em',
-                }}
-              >
-                A demanda cresceu{' '}
-                {pct(demandVariation)}
-                {' '}e o Próprio cresceu{' '}
-                {pct(ownVariation)}.
-              </strong>
+              {cards.map((card) => (
+                <div
+                  key={card.label}
+                  style={{
+                    background: '#fff',
+                    border: `1px solid ${line}`,
+                    borderRadius: 22,
+                    padding: '16px 18px',
+                    boxShadow:
+                      '0 10px 30px rgba(129,0,27,.07)',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: muted,
+                      fontWeight: 900,
+                      textTransform: 'uppercase',
+                      fontSize: 10,
+                      letterSpacing: '.08em',
+                    }}
+                  >
+                    {card.label}
+                  </span>
 
-              <p
-                style={{
-                  color: muted,
-                  margin: '10px 0 0',
-                  fontWeight: 740,
-                  lineHeight: 1.45,
-                }}
-              >
-                No mesmo período, Terceiro passou de{' '}
-                {june.thirdParty.toLocaleString('pt-BR')}
-                {' '}para{' '}
-                {july.thirdParty.toLocaleString('pt-BR')}
-                {' '}({signedPct(thirdPartyVariation)})
-                {' '}e FOB passou de{' '}
-                {june.fob.toLocaleString('pt-BR')}
-                {' '}para{' '}
-                {july.fob.toLocaleString('pt-BR')}
-                {' '}({signedPct(fobVariation)}).
-              </p>
+                  <strong
+                    style={{
+                      display: 'block',
+                      color: ink,
+                      fontSize: 25,
+                      marginTop: 6,
+                      letterSpacing: '-0.04em',
+                    }}
+                  >
+                    {card.value}
+                  </strong>
+
+                  <span
+                    style={{
+                      display: 'block',
+                      color: card.color,
+                      fontSize: 19,
+                      fontWeight: 950,
+                      marginTop: 4,
+                    }}
+                  >
+                    {card.delta}
+                  </span>
+                </div>
+              ))}
             </div>
 
+            {/* LEITURA */}
             <div
               style={{
-                padding: '22px 24px',
-                borderRadius: 30,
-                background: soft,
-                border: `1px solid ${line}`,
+                display: 'grid',
+                gridTemplateColumns:
+                  'minmax(0, 1.25fr) minmax(300px, .75fr)',
+                gap: 14,
               }}
             >
-              <span className="pill">
-                Leitura do comparativo
-              </span>
-
-              <strong
+              <div
                 style={{
-                  display: 'block',
-                  color: ink,
-                  fontSize: 21,
-                  marginTop: 14,
+                  padding: '18px 20px',
+                  borderRadius: 24,
+
+                  background:
+                    'linear-gradient(135deg, #fff, #fff1f4)',
+
+                  border: `1px solid ${line}`,
                 }}
               >
-                Produção própria
-              </strong>
+                <strong
+                  style={{
+                    color: ink,
+                    fontSize: 23,
+                    letterSpacing: '-0.04em',
+                  }}
+                >
+                  A demanda cresceu{' '}
+                  {pct(demandVariation)}
+                  {' '}e o Próprio cresceu{' '}
+                  {pct(ownVariation)}.
+                </strong>
 
-              <p
+                <p
+                  style={{
+                    color: muted,
+                    margin: '7px 0 0',
+                    fontWeight: 740,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  No mesmo período, Terceiro passou de{' '}
+                  {june.thirdParty.toLocaleString('pt-BR')}
+                  {' '}para{' '}
+                  {july.thirdParty.toLocaleString('pt-BR')}
+                  {' '}({signedPct(thirdPartyVariation)})
+                  {' '}e FOB passou de{' '}
+                  {june.fob.toLocaleString('pt-BR')}
+                  {' '}para{' '}
+                  {july.fob.toLocaleString('pt-BR')}
+                  {' '}({signedPct(fobVariation)}).
+                </p>
+              </div>
+
+              <div
                 style={{
-                  color: muted,
-                  fontWeight: 780,
-                  margin: '6px 0 12px',
+                  padding: '18px 20px',
+                  borderRadius: 24,
+                  background: soft,
+                  border: `1px solid ${line}`,
                 }}
               >
-                Evolução do volume de viagens
-                absorvidas pela operação própria.
-              </p>
+                <span className="pill">
+                  Leitura do comparativo
+                </span>
 
-              <strong
-                style={{
-                  display: 'block',
-                  color: ink,
-                  fontSize: 21,
-                }}
-              >
-                Participação de Terceiros
-              </strong>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      'repeat(2, minmax(0, 1fr))',
+                    gap: 16,
+                    marginTop: 12,
+                  }}
+                >
+                  <div>
+                    <strong
+                      style={{
+                        display: 'block',
+                        color: ink,
+                        fontSize: 18,
+                      }}
+                    >
+                      Produção própria
+                    </strong>
 
-              <p
-                style={{
-                  color: muted,
-                  fontWeight: 780,
-                  margin: '6px 0 0',
-                }}
-              >
-                Complementa a leitura da demanda
-                e da capacidade da operação.
-              </p>
+                    <p
+                      style={{
+                        color: muted,
+                        fontWeight: 760,
+                        margin: '4px 0 0',
+                        lineHeight: 1.35,
+                        fontSize: 13,
+                      }}
+                    >
+                      Evolução do volume absorvido pela operação própria.
+                    </p>
+                  </div>
+
+                  <div>
+                    <strong
+                      style={{
+                        display: 'block',
+                        color: ink,
+                        fontSize: 18,
+                      }}
+                    >
+                      Terceiros
+                    </strong>
+
+                    <p
+                      style={{
+                        color: muted,
+                        fontWeight: 760,
+                        margin: '4px 0 0',
+                        lineHeight: 1.35,
+                        fontSize: 13,
+                      }}
+                    >
+                      Complementa a leitura da demanda e capacidade.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </motion.section>
 
-        {/* GRÁFICOS */}
-        <motion.section
-          className="story-section"
-          {...reveal}
-        >
-          <div className="charts-grid charts-grid--two">
+            {/* GRÁFICOS */}
+            <div className="charts-grid charts-grid--two">
+              <ChartPanel
+                title="Volume mensal"
+                subtitle="Demanda total, Próprio, Terceiro e FOB."
+                option={optionVolumes}
+                height={320}
+              />
 
-            <ChartPanel
-              title="Volume mensal"
-              subtitle="Demanda total, Próprio, Terceiro e FOB."
-              option={optionVolumes}
-              height={360}
-            />
-
-            <ChartPanel
-              title="Participação na demanda"
-              subtitle="Evolução percentual de Próprio, Terceiro e FOB."
-              option={optionShares}
-              height={360}
-            />
+              <ChartPanel
+                title="Participação na demanda"
+                subtitle="Evolução percentual de Próprio, Terceiro e FOB."
+                option={optionShares}
+                height={320}
+              />
+            </div>
 
           </div>
         </motion.section>
