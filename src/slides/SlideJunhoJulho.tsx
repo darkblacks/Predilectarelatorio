@@ -1,11 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChartPanel } from '../components/ui/ChartPanel';
 import { SlideWrapper } from '../components/layout/SlideWrapper';
-import {
-  MonthSummary,
-  executiveThirdPartyVolume,
-  executiveOwnVolume,
-} from './useProductivityWorkbook';
+import { MonthSummary } from './useProductivityWorkbook';
 
 interface SlideJunhoJulhoProps {
   june: MonthSummary;
@@ -35,25 +31,51 @@ const pct = (value: number) =>
 const signedPct = (value: number) =>
   `${value >= 0 ? '+' : ''}${pct(value)}`;
 
-const share = (value: number, total: number) =>
-  total ? value / total : 0;
-
 const variation = (from: number, to: number) =>
-  from ? (to - from) / from : 0;
+  from > 0 ? (to - from) / from : 0;
 
-export function SlideJunhoJulho({
-  june,
-  july,
-}: SlideJunhoJulhoProps) {
+const share = (value: number, total: number) =>
+  total > 0 ? value / total : 0;
 
-  const juneOwn = executiveOwnVolume(june, 'june');
-  const julyOwn = executiveOwnVolume(july, 'july');
+export function SlideJunhoJulho(
+  _props: SlideJunhoJulhoProps
+) {
+  /*
+   * CONSOLIDADO MENSAL VALIDADO
+   *
+   * Junho:
+   * Demanda  = 2.153
+   * Próprio  = 1.215
+   * Terceiro = 828
+   * FOB      = 110
+   *
+   * Julho:
+   * Demanda  = 2.457
+   * Próprio  = 1.344
+   * Terceiro = 985
+   * FOB      = 128
+   *
+   * Este slide usa o consolidado mensal.
+   * Não utiliza o recorte comparativo de 01 a 17.
+   */
 
-  const juneThirdParty =
-    executiveThirdPartyVolume(june, 'june');
+  const june = {
+    total: 2153,
+    own: 1215,
+    thirdParty: 828,
+    fob: 110,
+  };
 
-  const julyThirdParty =
-    executiveThirdPartyVolume(july, 'july');
+  const july = {
+    total: 2457,
+    own: 1344,
+    thirdParty: 985,
+    fob: 128,
+  };
+
+  /*
+   * VARIAÇÕES
+   */
 
   const demandVariation = variation(
     june.total,
@@ -61,13 +83,13 @@ export function SlideJunhoJulho({
   );
 
   const ownVariation = variation(
-    juneOwn,
-    julyOwn
+    june.own,
+    july.own
   );
 
   const thirdPartyVariation = variation(
-    juneThirdParty,
-    julyThirdParty
+    june.thirdParty,
+    july.thirdParty
   );
 
   const fobVariation = variation(
@@ -75,23 +97,27 @@ export function SlideJunhoJulho({
     july.fob
   );
 
+  /*
+   * PARTICIPAÇÃO NA DEMANDA
+   */
+
   const ownShareJune = share(
-    juneOwn,
+    june.own,
     june.total
   );
 
   const ownShareJuly = share(
-    julyOwn,
+    july.own,
     july.total
   );
 
   const thirdPartyShareJune = share(
-    juneThirdParty,
+    june.thirdParty,
     june.total
   );
 
   const thirdPartyShareJuly = share(
-    julyThirdParty,
+    july.thirdParty,
     july.total
   );
 
@@ -106,8 +132,9 @@ export function SlideJunhoJulho({
   );
 
   /*
-   * GRÁFICO DE VOLUME
+   * GRÁFICO — VOLUME
    */
+
   const optionVolumes = {
     tooltip: {
       trigger: 'axis',
@@ -133,7 +160,11 @@ export function SlideJunhoJulho({
 
     xAxis: {
       type: 'category',
-      data: ['Junho/26', 'Julho/26'],
+
+      data: [
+        'Junho/26',
+        'Julho/26',
+      ],
 
       axisLine: {
         lineStyle: {
@@ -173,8 +204,8 @@ export function SlideJunhoJulho({
         type: 'bar',
 
         data: [
-          juneOwn,
-          julyOwn,
+          june.own,
+          july.own,
         ],
 
         itemStyle: {
@@ -188,8 +219,8 @@ export function SlideJunhoJulho({
         type: 'bar',
 
         data: [
-          juneThirdParty,
-          julyThirdParty,
+          june.thirdParty,
+          july.thirdParty,
         ],
 
         itemStyle: {
@@ -216,8 +247,9 @@ export function SlideJunhoJulho({
   };
 
   /*
-   * GRÁFICO DE PARTICIPAÇÃO
+   * GRÁFICO — PARTICIPAÇÃO
    */
+
   const optionShares = {
     tooltip: {
       trigger: 'axis',
@@ -246,7 +278,11 @@ export function SlideJunhoJulho({
 
     xAxis: {
       type: 'category',
-      data: ['Junho/26', 'Julho/26'],
+
+      data: [
+        'Junho/26',
+        'Julho/26',
+      ],
 
       axisLine: {
         lineStyle: {
@@ -346,48 +382,69 @@ export function SlideJunhoJulho({
   };
 
   /*
-   * CARDS PRINCIPAIS
+   * CARDS
    */
+
   const cards = [
     {
       label: 'Demanda total',
+
       value:
         `${june.total.toLocaleString('pt-BR')} → ` +
         `${july.total.toLocaleString('pt-BR')}`,
-      delta: signedPct(demandVariation),
-      color: demandVariation >= 0
-        ? orange
-        : green,
+
+      delta: signedPct(
+        demandVariation
+      ),
+
+      color: orange,
     },
 
     {
       label: 'Próprio',
+
       value:
-        `${juneOwn.toLocaleString('pt-BR')} → ` +
-        `${julyOwn.toLocaleString('pt-BR')}`,
-      delta: signedPct(ownVariation),
-      color: ownVariation >= 0
-        ? green
-        : red,
+        `${june.own.toLocaleString('pt-BR')} → ` +
+        `${july.own.toLocaleString('pt-BR')}`,
+
+      delta: signedPct(
+        ownVariation
+      ),
+
+      color:
+        ownVariation >= 0
+          ? green
+          : red,
     },
 
     {
       label: 'Terceiro',
+
       value:
-        `${juneThirdParty.toLocaleString('pt-BR')} → ` +
-        `${julyThirdParty.toLocaleString('pt-BR')}`,
-      delta: signedPct(thirdPartyVariation),
-      color: thirdPartyVariation <= 0
-        ? green
-        : red,
+        `${june.thirdParty.toLocaleString('pt-BR')} → ` +
+        `${july.thirdParty.toLocaleString('pt-BR')}`,
+
+      delta: signedPct(
+        thirdPartyVariation
+      ),
+
+      color:
+        thirdPartyVariation <= 0
+          ? green
+          : red,
     },
 
     {
       label: 'FOB',
+
       value:
         `${june.fob.toLocaleString('pt-BR')} → ` +
         `${july.fob.toLocaleString('pt-BR')}`,
-      delta: signedPct(fobVariation),
+
+      delta: signedPct(
+        fobVariation
+      ),
+
       color: orange,
     },
   ];
@@ -400,7 +457,7 @@ export function SlideJunhoJulho({
     >
       <div className="story-page">
 
-        {/* BIG NUMBERS */}
+        {/* CARDS */}
         <motion.section
           className="story-section"
           {...reveal}
@@ -482,8 +539,10 @@ export function SlideJunhoJulho({
               style={{
                 padding: '24px 26px',
                 borderRadius: 30,
+
                 background:
                   'linear-gradient(135deg, #fff, #fff1f4)',
+
                 border: `1px solid ${line}`,
               }}
             >
@@ -495,9 +554,9 @@ export function SlideJunhoJulho({
                 }}
               >
                 A demanda cresceu{' '}
-                {pct(demandVariation).replace('-', '')}
-                , enquanto o Próprio cresceu{' '}
-                {pct(ownVariation).replace('-', '')}.
+                {pct(demandVariation)}
+                {' '}e o Próprio cresceu{' '}
+                {pct(ownVariation)}.
               </strong>
 
               <p
@@ -509,9 +568,9 @@ export function SlideJunhoJulho({
                 }}
               >
                 No mesmo período, Terceiro passou de{' '}
-                {juneThirdParty.toLocaleString('pt-BR')}
+                {june.thirdParty.toLocaleString('pt-BR')}
                 {' '}para{' '}
-                {julyThirdParty.toLocaleString('pt-BR')}
+                {july.thirdParty.toLocaleString('pt-BR')}
                 {' '}({signedPct(thirdPartyVariation)})
                 {' '}e FOB passou de{' '}
                 {june.fob.toLocaleString('pt-BR')}
@@ -551,9 +610,8 @@ export function SlideJunhoJulho({
                   margin: '6px 0 12px',
                 }}
               >
-                Mostra quanto da operação foi
-                absorvido pelos recursos próprios
-                no período.
+                Evolução do volume de viagens
+                absorvidas pela operação própria.
               </p>
 
               <strong
@@ -574,7 +632,7 @@ export function SlideJunhoJulho({
                 }}
               >
                 Complementa a leitura da demanda
-                e da capacidade operacional.
+                e da capacidade da operação.
               </p>
             </div>
           </div>
