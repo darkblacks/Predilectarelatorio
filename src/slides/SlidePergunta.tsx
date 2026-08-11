@@ -262,7 +262,7 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
     grid: { left: 52, right: 20, top: 30, bottom: 52 },
     xAxis: {
       type: 'category',
-      data: ['Junho/26', 'Julho/26'],
+      data: ['Julho/26'],
       axisLine: { lineStyle: { color: '#ead5db' } },
     },
     yAxis: {
@@ -276,19 +276,19 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
       {
         name: 'Próprio',
         type: 'bar',
-        data: [juneOwnShare * 100, julyOwnShare * 100],
+        data: [julyOwnShare * 100],
         itemStyle: { color: blue, borderRadius: [10, 10, 0, 0] },
       },
       {
         name: 'Terceiro',
         type: 'bar',
-        data: [juneThirdPartyShare * 100, julyThirdPartyShare * 100],
+        data: [julyThirdPartyShare * 100],
         itemStyle: { color: red, borderRadius: [10, 10, 0, 0] },
       },
       {
         name: 'FOB',
         type: 'bar',
-        data: [juneFobShare * 100, julyFobShare * 100],
+        data: [julyFobShare * 100],
         itemStyle: { color: orange, borderRadius: [10, 10, 0, 0] },
       },
     ],
@@ -304,7 +304,7 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
     grid: { left: 58, right: 20, top: 30, bottom: 52 },
     xAxis: {
       type: 'category',
-      data: ['Junho/26', 'Julho/26'],
+      data: ['Julho/26'],
       axisLine: { lineStyle: { color: '#ead5db' } },
     },
     yAxis: {
@@ -317,21 +317,21 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
         name: 'Próprio',
         type: 'bar',
         stack: 'total',
-        data: [juneOwn, julyOwn],
+        data: [julyOwn],
         itemStyle: { color: blue },
       },
       {
         name: 'Terceiro',
         type: 'bar',
         stack: 'total',
-        data: [juneThirdParty, julyThirdParty],
+        data: [julyThirdParty],
         itemStyle: { color: red },
       },
       {
         name: 'FOB',
         type: 'bar',
         stack: 'total',
-        data: [june.fob, july.fob],
+        data: [july.fob],
         itemStyle: { color: orange, borderRadius: [8, 8, 0, 0] },
       },
     ],
@@ -606,7 +606,7 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
                 <span className="pill">Resultado</span>
                 <h2>Big numbers · Julho/26</h2>
                 <p>
-                  Mesma leitura executiva de resultado, atualizada para julho. Próprio = Frota; Terceiro = Transpredi + Terceiros.
+                  Resultado consolidado de julho apresentado em Próprio, Terceiro e FOB.
                 </p>
               </div>
 
@@ -658,20 +658,6 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14, marginTop: 14 }}>
-                <ResultMetric
-                  label="Terceiro · Junho → Julho"
-                  value={`${pctFmt(juneThirdPartyShare)} → ${pctFmt(julyThirdPartyShare)}`}
-                  helper={`${thirdPartyChange > 0 ? '+' : ''}${pctPointFmt(thirdPartyChange)} no indicador`}
-                  color={thirdPartyChange <= 0 ? green : red}
-                />
-                <ResultMetric
-                  label="Próprio · Junho → Julho"
-                  value={`${pctFmt(juneOwnShare)} → ${pctFmt(julyOwnShare)}`}
-                  helper={`${ownChange > 0 ? '+' : ''}${pctPointFmt(ownChange)} na participação própria`}
-                  color={ownChange >= 0 ? green : blue}
-                />
-              </div>
             </motion.section>
 
             <motion.section className="story-section" {...reveal}>
@@ -679,19 +665,19 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
                 <span className="pill">Resultado do grupo</span>
                 <h2>Próprio x Terceiro x FOB</h2>
                 <p>
-                  Comparativo Junho → Julho usando o critério executivo de cada período.
+                  Composição consolidada de julho entre Próprio, Terceiro e FOB.
                 </p>
               </div>
 
               <div className="charts-grid charts-grid--two">
                 <ChartPanel
-                  title="Participação por classificação (%)"
-                  subtitle="Percentual sobre o total de viagens do grupo."
+                  title="Participação em Julho (%)"
+                  subtitle="Percentual sobre o total de viagens de julho."
                   option={optionGrupoPercentual}
                   height={360}
                 />
                 <ChartPanel
-                  title="Quantidade de viagens"
+                  title="Quantidade de viagens · Julho"
                   subtitle="Volume absoluto de Próprio, Terceiro e FOB."
                   option={optionGrupoQuantidade}
                   height={360}
@@ -710,7 +696,7 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
                   lineHeight: 1.4,
                 }}
               >
-                <strong style={{ color: ink }}>Critério:</strong> em Junho, Transpredi compõe Próprio; em Julho, Transpredi compõe Terceiro. O XLSX bruto não é alterado.
+                <strong style={{ color: ink }}>Leitura:</strong> os resultados são apresentados nas categorias Próprio, Terceiro e FOB.
               </div>
             </motion.section>
 

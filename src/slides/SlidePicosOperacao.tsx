@@ -27,35 +27,22 @@ const soft = '#fff1f4';
 const brNumber = new Intl.NumberFormat('pt-BR');
 const oneDecimal = (value: number) => value.toFixed(1).replace('.', ',');
 
-export function SlidePicosOperacao({
-  daily,
-  dailyByUnit,
-}: SlidePicosOperacaoProps) {
+export function SlidePicosOperacao({ daily, dailyByUnit }: SlidePicosOperacaoProps) {
   const [selectedScope, setSelectedScope] = useState('Grupo');
 
-  const filters = useMemo(
-    () => ['Grupo', ...Object.keys(dailyByUnit)],
-    [dailyByUnit]
-  );
+  const filters = useMemo(() => ['Grupo', ...Object.keys(dailyByUnit)], [dailyByUnit]);
 
-  const selectedDaily =
-    selectedScope === 'Grupo'
-      ? daily
-      : dailyByUnit[selectedScope] ?? daily;
+  const selectedDaily = selectedScope === 'Grupo'
+    ? daily
+    : dailyByUnit[selectedScope] ?? daily;
 
   const activeDays = selectedDaily.filter((item) => item.total > 0);
-
-  const peak = [...activeDays].sort(
-    (a, b) => b.total - a.total
-  )[0];
-
+  const peak = [...activeDays].sort((a, b) => b.total - a.total)[0];
   const average = activeDays.length
-    ? activeDays.reduce((sum, item) => sum + item.total, 0) /
-      activeDays.length
+    ? activeDays.reduce((sum, item) => sum + item.total, 0) / activeDays.length
     : 0;
 
   const isGroup = selectedScope === 'Grupo';
-
   const pressureDays = isGroup
     ? activeDays.filter((item) => item.total > 100).length
     : activeDays.filter((item) => item.total > average).length;
@@ -64,11 +51,9 @@ export function SlidePicosOperacao({
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-
       formatter: (params: Array<{ dataIndex?: number }>) => {
         const dataIndex = params?.[0]?.dataIndex ?? 0;
         const item = selectedDaily[dataIndex];
-
         if (!item) return '';
 
         return [
@@ -80,111 +65,47 @@ export function SlidePicosOperacao({
         ].join('<br/>');
       },
     },
-
-    legend: {
-      bottom: 0,
-      textStyle: {
-        color: muted,
-        fontWeight: 700,
-      },
-    },
-
-    grid: {
-      left: 54,
-      right: 22,
-      top: 24,
-      bottom: 62,
-    },
-
+    legend: { bottom: 0, textStyle: { color: muted, fontWeight: 700 } },
+    grid: { left: 54, right: 22, top: 24, bottom: 62 },
     xAxis: {
       type: 'category',
       data: selectedDaily.map((item) => item.label),
-
-      axisLabel: {
-        interval: 1,
-        rotate: 35,
-      },
-
-      axisLine: {
-        lineStyle: {
-          color: '#ead5db',
-        },
-      },
+      axisLabel: { interval: 1, rotate: 35 },
+      axisLine: { lineStyle: { color: '#ead5db' } },
     },
-
     yAxis: {
       type: 'value',
-
-      splitLine: {
-        lineStyle: {
-          color: '#f3e2e6',
-        },
-      },
+      splitLine: { lineStyle: { color: '#f3e2e6' } },
     },
-
     series: [
       {
         name: 'Próprio',
         type: 'bar',
         stack: 'total',
-
-        data: selectedDaily.map(
-          (item) => item.frota
-        ),
-
-        itemStyle: {
-          color: blue,
-        },
+        data: selectedDaily.map((item) => item.frota),
+        itemStyle: { color: blue },
       },
-
       {
         name: 'Terceiro',
         type: 'bar',
         stack: 'total',
-
-        data: selectedDaily.map(
-          (item) => item.terceiro
-        ),
-
-        itemStyle: {
-          color: red,
-        },
+        data: selectedDaily.map((item) => item.terceiro),
+        itemStyle: { color: red },
       },
-
       {
         name: 'FOB',
         type: 'bar',
         stack: 'total',
-
-        data: selectedDaily.map(
-          (item) => item.fob
-        ),
-
-        itemStyle: {
-          color: orange,
-          borderRadius: [5, 5, 0, 0],
-        },
+        data: selectedDaily.map((item) => item.fob),
+        itemStyle: { color: orange, borderRadius: [5, 5, 0, 0] },
       },
-
       {
         name: 'Média diária',
         type: 'line',
-
-        data: selectedDaily.map(
-          () => average
-        ),
-
+        data: selectedDaily.map(() => average),
         symbol: 'none',
-
-        lineStyle: {
-          color: '#8b5e34',
-          width: 2,
-          type: 'dashed',
-        },
-
-        tooltip: {
-          show: false,
-        },
+        lineStyle: { color: '#8b5e34', width: 2, type: 'dashed' },
+        tooltip: { show: false },
       },
     ],
   };
@@ -196,33 +117,15 @@ export function SlidePicosOperacao({
       subtitle="A demanda varia ao longo do mês; filtre o grupo ou uma fábrica para acompanhar a composição diária."
     >
       <div className="story-page">
-
-        {/*
-          IMPORTANTE:
-          Agora existe apenas UMA story-section.
-          Isso elimina aquele espaço gigante entre filtro,
-          cards e gráfico.
-        */}
-        <motion.section
-          className="story-section"
-          {...reveal}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gap: 22,
-            }}
-          >
-
-            {/* FILTRO */}
+        <motion.section className="story-section" {...reveal}>
+          <div style={{ display: 'grid', gap: 22 }}>
             <div
               style={{
                 padding: '16px 18px',
                 borderRadius: 26,
                 border: `1px solid ${line}`,
                 background: '#fff',
-                boxShadow:
-                  '0 12px 34px rgba(129, 0, 27, 0.07)',
+                boxShadow: '0 12px 34px rgba(129, 0, 27, 0.07)',
               }}
             >
               <div
@@ -235,68 +138,31 @@ export function SlidePicosOperacao({
                 }}
               >
                 <div>
-                  <span className="pill">
-                    Filtro por fábrica
-                  </span>
-
-                  <strong
-                    style={{
-                      display: 'block',
-                      color: ink,
-                      fontSize: 19,
-                      marginTop: 8,
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
+                  <span className="pill">Filtro por fábrica</span>
+                  <strong style={{ display: 'block', color: ink, fontSize: 19, marginTop: 8, letterSpacing: '-0.02em' }}>
                     Visualizando: {selectedScope}
                   </strong>
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 8,
-                    flexWrap: 'wrap',
-                    justifyContent: 'flex-end',
-                  }}
-                >
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {filters.map((filter) => {
-                    const selected =
-                      selectedScope === filter;
-
+                    const selected = selectedScope === filter;
                     return (
                       <button
                         key={filter}
                         type="button"
-                        onClick={() =>
-                          setSelectedScope(filter)
-                        }
+                        onClick={() => setSelectedScope(filter)}
                         style={{
-                          border: selected
-                            ? `2px solid ${red}`
-                            : `1px solid ${line}`,
-
-                          background: selected
-                            ? red
-                            : soft,
-
-                          color: selected
-                            ? '#fff'
-                            : muted,
-
+                          border: selected ? `2px solid ${red}` : `1px solid ${line}`,
+                          background: selected ? red : soft,
+                          color: selected ? '#fff' : muted,
                           borderRadius: 999,
                           padding: '9px 13px',
-
                           fontWeight: 900,
                           fontSize: 13,
                           cursor: 'pointer',
-
-                          boxShadow: selected
-                            ? '0 8px 22px rgba(218, 13, 13, 0.18)'
-                            : 'none',
-
-                          transition:
-                            'all 0.2s ease',
+                          boxShadow: selected ? '0 8px 22px rgba(218, 13, 13, 0.18)' : 'none',
+                          transition: 'all 0.2s ease',
                         }}
                       >
                         {filter}
@@ -307,198 +173,46 @@ export function SlidePicosOperacao({
               </div>
             </div>
 
-            {/* INDICADORES */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns:
-                  'repeat(3, minmax(0, 1fr))',
-                gap: 16,
-              }}
-            >
-
-              {/* PICO */}
-              <div
-                style={{
-                  background: '#fff',
-                  border: `1px solid ${line}`,
-                  borderRadius: 26,
-                  padding: 20,
-                }}
-              >
-                <span
-                  style={{
-                    color: muted,
-                    fontWeight: 900,
-                    fontSize: 12,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Pico do mês
-                </span>
-
-                <strong
-                  style={{
-                    display: 'block',
-                    color: ink,
-                    fontSize: 36,
-                    marginTop: 7,
-                  }}
-                >
-                  {peak?.total ?? 0}
-                </strong>
-
-                <small
-                  style={{
-                    color: muted,
-                    fontWeight: 760,
-                  }}
-                >
-                  {peak
-                    ? `carregamentos em ${peak.label}`
-                    : '—'}
-                </small>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 16 }}>
+              <div style={{ background: '#fff', border: `1px solid ${line}`, borderRadius: 26, padding: 20 }}>
+                <span style={{ color: muted, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>Pico do mês</span>
+                <strong style={{ display: 'block', color: ink, fontSize: 36, marginTop: 7 }}>{peak?.total ?? 0}</strong>
+                <small style={{ color: muted, fontWeight: 760 }}>{peak ? `carregamentos em ${peak.label}` : '—'}</small>
               </div>
 
-              {/* MÉDIA */}
-              <div
-                style={{
-                  background: '#fff',
-                  border: `1px solid ${line}`,
-                  borderRadius: 26,
-                  padding: 20,
-                }}
-              >
-                <span
-                  style={{
-                    color: muted,
-                    fontWeight: 900,
-                    fontSize: 12,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Média em dias ativos
-                </span>
-
-                <strong
-                  style={{
-                    display: 'block',
-                    color: blue,
-                    fontSize: 36,
-                    marginTop: 7,
-                  }}
-                >
-                  {oneDecimal(average)}
-                </strong>
-
-                <small
-                  style={{
-                    color: muted,
-                    fontWeight: 760,
-                  }}
-                >
-                  carregamentos por dia com operação
-                </small>
+              <div style={{ background: '#fff', border: `1px solid ${line}`, borderRadius: 26, padding: 20 }}>
+                <span style={{ color: muted, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>Média em dias ativos</span>
+                <strong style={{ display: 'block', color: blue, fontSize: 36, marginTop: 7 }}>{oneDecimal(average)}</strong>
+                <small style={{ color: muted, fontWeight: 760 }}>carregamentos por dia com operação</small>
               </div>
 
-              {/* PRESSÃO */}
-              <div
-                style={{
-                  background: '#fff',
-                  border: `1px solid ${line}`,
-                  borderRadius: 26,
-                  padding: 20,
-                }}
-              >
-                <span
-                  style={{
-                    color: muted,
-                    fontWeight: 900,
-                    fontSize: 12,
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {isGroup
-                    ? 'Dias acima de 100'
-                    : 'Dias acima da média'}
+              <div style={{ background: '#fff', border: `1px solid ${line}`, borderRadius: 26, padding: 20 }}>
+                <span style={{ color: muted, fontWeight: 900, fontSize: 12, textTransform: 'uppercase' }}>
+                  {isGroup ? 'Dias acima de 100' : 'Dias acima da média'}
                 </span>
-
-                <strong
-                  style={{
-                    display: 'block',
-                    color: red,
-                    fontSize: 36,
-                    marginTop: 7,
-                  }}
-                >
-                  {pressureDays}
-                </strong>
-
-                <small
-                  style={{
-                    color: muted,
-                    fontWeight: 760,
-                  }}
-                >
-                  {isGroup
-                    ? 'picos que pressionam a capacidade'
-                    : `dias acima de ${oneDecimal(
-                        average
-                      )} carregamentos`}
+                <strong style={{ display: 'block', color: red, fontSize: 36, marginTop: 7 }}>{pressureDays}</strong>
+                <small style={{ color: muted, fontWeight: 760 }}>
+                  {isGroup ? 'picos que pressionam a capacidade' : `dias acima de ${oneDecimal(average)} carregamentos`}
                 </small>
               </div>
             </div>
 
-            {/* GRÁFICO */}
             <ChartPanel
               key={selectedScope}
-              title={
-                isGroup
-                  ? 'Composição diária do grupo'
-                  : `Composição diária · ${selectedScope}`
-              }
+              title={isGroup ? 'Composição diária do grupo' : `Composição diária · ${selectedScope}`}
               subtitle={`Próprio, Terceiro e FOB ao longo de julho/26 · ${selectedScope}.`}
               option={option}
               height={470}
             />
 
-            {/* CONCLUSÃO */}
-            <div
-              style={{
-                padding: '20px 22px',
-                borderRadius: 26,
-                border: `1px solid ${line}`,
-                background: soft,
-              }}
-            >
-              <strong
-                style={{
-                  color: ink,
-                  fontSize: 23,
-                }}
-              >
-                A leitura muda: terceiro alto em um
-                pico não é automaticamente
-                ineficiência.
+            <div style={{ padding: '20px 22px', borderRadius: 26, border: `1px solid ${line}`, background: soft }}>
+              <strong style={{ color: ink, fontSize: 23 }}>
+                A leitura muda: terceiro alto em um pico não é automaticamente ineficiência.
               </strong>
-
-              <p
-                style={{
-                  color: muted,
-                  margin: '7px 0 0',
-                  fontWeight: 740,
-                  lineHeight: 1.42,
-                }}
-              >
-                Use o filtro para comparar a dinâmica
-                de cada fábrica. Em julho, Próprio
-                representa a Frota e Terceiro reúne
-                Transpredi + Terceiros; FOB permanece
-                separado para fechar o total de
-                viagens.
+              <p style={{ color: muted, margin: '7px 0 0', fontWeight: 740, lineHeight: 1.42 }}>
+                Use o filtro para comparar a dinâmica de cada fábrica. O gráfico separa Próprio, Terceiro e FOB para mostrar como a composição da demanda varia ao longo de julho.
               </p>
             </div>
-
           </div>
         </motion.section>
       </div>

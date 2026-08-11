@@ -13,8 +13,8 @@ export function SlideCapa() {
   return (
     <SlideWrapper
       title="Produtividade da Frota"
-      subtitle="Demanda, produtividade do Próprio e participação de Terceiros"
-      footer="Grupo Predilecta · Julho/2026 · Dados carregados diretamente do XLSX do projeto."
+      subtitle="Demanda, produção própria e apoio de terceiros"
+      footer="Dashboard Operacional Predilecta · Julho/2026"
     >
       <div
         style={{
@@ -55,8 +55,8 @@ export function SlideCapa() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14, marginTop: 30 }}>
             {[
               ['Demanda', 'Quanto precisa ser transportado', orange],
-              ['Próprio', 'Quanto os ativos próprios entregam', blue],
-              ['Terceiro', 'Quanto complementa a operação', red],
+              ['Frota', 'Quanto os ativos próprios entregam', blue],
+              ['Apoio externo', 'Quanto complementa a operação', red],
             ].map(([title, helper, color], index) => (
               <motion.div
                 key={String(title)}

@@ -39,26 +39,27 @@ export default function App() {
     error,
     june,
     july,
+    comparisonJune,
+    comparisonJuly,
     units,
     daily,
     dailyByUnit,
     groupVehicles,
     metaTerceiros,
-    dataNotes,
   } = useProductivityWorkbook();
 
   const slides = useMemo(
     () => [
       <SlideCapa key="capa" />,
       <SlidePergunta key="pergunta" meta={metaTerceiros} june={june} july={july} units={units} />,
-      <SlideJunhoJulho key="junho-julho" june={june} july={july} />,
-      <SlideProdutividadeUnidades key="produtividade-unidades" units={units} dataNotes={dataNotes} />,
+      <SlideJunhoJulho key="junho-julho" june={comparisonJune} july={comparisonJuly} />,
+      <SlideProdutividadeUnidades key="produtividade-unidades" units={units} />,
       <SlideMatrizProdutividade key="matriz" units={units} />,
       <SlidePicosOperacao key="picos" daily={daily} dailyByUnit={dailyByUnit} />,
       <SlideOportunidades key="oportunidades" units={units} />,
-      <SlideKPIs key="kpis" july={july} groupVehicles={groupVehicles} meta={metaTerceiros} dataNotes={dataNotes} />,
+      <SlideKPIs key="kpis" july={july} groupVehicles={groupVehicles} meta={metaTerceiros} />,
     ],
-    [june, july, units, daily, dailyByUnit, groupVehicles, metaTerceiros, dataNotes]
+    [june, july, comparisonJune, comparisonJuly, units, daily, dailyByUnit, groupVehicles, metaTerceiros]
   );
 
   useEffect(() => {

@@ -9,7 +9,13 @@ interface SlideWrapperProps {
   footer?: string;
 }
 
-export function SlideWrapper({ eyebrow, title, subtitle, children, footer = 'Dashboard Operacional Predilecta · Maio x Junho/2026' }: SlideWrapperProps) {
+export function SlideWrapper({
+  eyebrow,
+  title,
+  subtitle,
+  children,
+  footer = 'Dashboard Operacional Predilecta · Julho/2026',
+}: SlideWrapperProps) {
   return (
     <motion.section
       className="slide"
