@@ -6,7 +6,12 @@ interface SlideKPIsProps {
   july: MonthSummary;
   groupVehicles: number;
   meta: number;
-  dataNotes: string[];
+
+  /*
+   * Mantemos essa prop porque o App.tsx atual ainda envia dataNotes.
+   * Ela não é utilizada nesta página.
+   */
+  dataNotes?: string[];
 }
 
 const ink = '#2e1a20';
@@ -24,28 +29,40 @@ const pct = (value: number) =>
     .replace('.', ',')}%`;
 
 const dec1 = (value: number) =>
-  value.toFixed(1).replace('.', ',');
+  value
+    .toFixed(1)
+    .replace('.', ',');
 
 export function SlideKPIs({
   july,
   groupVehicles,
   meta,
 }: SlideKPIsProps) {
+  /*
+   * Julho:
+   * Próprio = Frota
+   *
+   * A regra de classificação já está aplicada
+   * na leitura dos indicadores.
+   * Não precisamos explicar isso no slide.
+   */
 
   const productivity =
-    groupVehicles
+    groupVehicles > 0
       ? july.frota / groupVehicles
       : 0;
 
   const ownShare =
-    july.total
+    july.total > 0
       ? july.frota / july.total
       : 0;
 
+  const thirdPartyVolume =
+    july.transpredi + july.terceiro;
+
   const thirdPartyShare =
-    july.total
-      ? (july.transpredi + july.terceiro) /
-        july.total
+    july.total > 0
+      ? thirdPartyVolume / july.total
       : 0;
 
   const kpis = [
@@ -63,8 +80,7 @@ export function SlideKPIs({
       index: '02',
       title: 'Participação de Próprio',
       value: pct(ownShare),
-      formula:
-        'Viagens Próprio ÷ Total de viagens',
+      formula: 'Viagens Próprio ÷ Total de viagens',
       helper:
         'Mostra quanto da demanda total foi absorvida pela frota própria.',
       color: orange,
@@ -74,8 +90,7 @@ export function SlideKPIs({
       index: '03',
       title: 'Participação de Terceiros',
       value: pct(thirdPartyShare),
-      formula:
-        'Viagens Terceiro ÷ Total de viagens',
+      formula: 'Viagens Terceiro ÷ Total de viagens',
       helper:
         `A meta de ${Math.round(
           meta * 100
@@ -89,10 +104,11 @@ export function SlideKPIs({
       eyebrow="Novo painel"
       title="Três KPIs para orientar a gestão"
       subtitle="Poucos indicadores, cada um respondendo uma pergunta operacional diferente."
-      footer="Fonte: Controle Diário de Aproveitamento da Frota Julho_26.xlsx"
+      footer="Dashboard Operacional Predilecta · Julho/2026"
     >
       <div className="story-page">
 
+        {/* KPIs */}
         <motion.section
           className="story-section"
           initial={{
@@ -209,6 +225,7 @@ export function SlideKPIs({
           </div>
         </motion.section>
 
+        {/* CONCLUSÃO */}
         <motion.section
           className="story-section"
           initial={{
@@ -235,6 +252,8 @@ export function SlideKPIs({
               gap: 18,
             }}
           >
+
+            {/* TEXTO */}
             <div
               style={{
                 background:
@@ -277,14 +296,17 @@ export function SlideKPIs({
               </p>
             </div>
 
+            {/* LOGO */}
             <div
               style={{
                 background: '#fff',
                 border: `1px solid ${line}`,
                 borderRadius: 30,
                 padding: 24,
-                display: 'grid',
-                placeItems: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 textAlign: 'center',
               }}
             >
@@ -298,30 +320,28 @@ export function SlideKPIs({
                 }}
               />
 
-              <div>
-                <strong
-                  style={{
-                    display: 'block',
-                    color: ink,
-                    fontSize: 24,
-                    marginTop: 18,
-                  }}
-                >
-                  Julho/2026
-                </strong>
+              <strong
+                style={{
+                  display: 'block',
+                  color: ink,
+                  fontSize: 24,
+                  marginTop: 18,
+                }}
+              >
+                Julho/2026
+              </strong>
 
-                <p
-                  style={{
-                    color: muted,
-                    fontWeight: 730,
-                    lineHeight: 1.42,
-                    margin: '7px 0 0',
-                  }}
-                >
-                  Produtividade, participação própria
-                  e utilização de terceiros.
-                </p>
-              </div>
+              <p
+                style={{
+                  color: muted,
+                  fontWeight: 730,
+                  lineHeight: 1.42,
+                  margin: '7px 0 0',
+                }}
+              >
+                Produtividade, participação própria
+                e utilização de terceiros.
+              </p>
             </div>
 
           </div>
