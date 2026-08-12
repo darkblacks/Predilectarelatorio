@@ -200,38 +200,54 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
     },
   ];
 
-  const influences: Array<{ title: string; description: string; tone: InfluenceTone }> = [
-    {
-      title: 'Produtividade da frota',
-      description: 'Programação, retorno, carregamento e uso do ativo podem elevar as viagens produzidas por veículo.',
-      tone: 'gerenciavel',
-    },
-    {
-      title: 'Disponibilidade e manutenção',
-      description: 'Preventiva, corretiva, motorista e tempo parado podem ser reduzidos, mas não eliminados completamente.',
-      tone: 'parcial',
-    },
-    {
-      title: 'Distribuição da frota entre bases',
-      description: 'Reposicionar veículos pode melhorar cobertura, porém depende da operação, distância e necessidade de cada fábrica.',
-      tone: 'parcial',
-    },
-    {
-      title: 'Picos e variação da demanda',
-      description: 'Planejamento ajuda a absorver parte dos picos, mas a demanda não é linear e pode superar a capacidade disponível.',
-      tone: 'parcial',
-    },
-    {
-      title: 'Quantidade de veículos na base',
-      description: 'Define um limite físico de atendimento. Mudar esse limite exige redistribuição de frota ou decisão de investimento.',
-      tone: 'estrutural',
-    },
-    {
-      title: 'Distância e tempo de ciclo das rotas',
-      description: 'Rotas longas e permanência em clientes limitam quantas viagens um mesmo veículo consegue executar no período.',
-      tone: 'estrutural',
-    },
-  ];
+  const influences: Array<{
+  title: string;
+  description: string;
+  tone: InfluenceTone;
+}> = [
+  {
+    title: 'Produtividade da frota',
+    description:
+      'Programação, retorno, carregamento e uso do ativo podem elevar as viagens produzidas por veículo.',
+    tone: 'gerenciavel',
+  },
+  {
+    title: 'LOGISTICA REVERSA',
+    description:
+      'Após realizar uma entrega, o caminhão pode aproveitar o retorno para fazer uma coleta e voltar carregado para a base. Isso pode aumentar o tempo de retorno e postergar sua disponibilidade para uma nova viagem, porém gera benefício para a empresa ao evitar o retorno vazio e executar uma operação logística que não está contabilizada nessas viagens.',
+    tone: 'gerenciavel',
+  },
+  {
+    title: 'Disponibilidade e manutenção',
+    description:
+      'Preventiva, corretiva, motorista e tempo parado podem ser reduzidos, mas não eliminados completamente.',
+    tone: 'parcial',
+  },
+  {
+    title: 'Distribuição da frota entre bases',
+    description:
+      'Reposicionar veículos pode melhorar cobertura, porém depende da operação, distância e necessidade de cada fábrica.',
+    tone: 'parcial',
+  },
+  {
+    title: 'Picos e variação da demanda',
+    description:
+      'Planejamento ajuda a absorver parte dos picos, mas a demanda não é linear e pode superar a capacidade disponível.',
+    tone: 'parcial',
+  },
+  {
+    title: 'Quantidade de veículos na base',
+    description:
+      'Define um limite físico de atendimento. Mudar esse limite exige redistribuição de frota ou decisão de investimento.',
+    tone: 'estrutural',
+  },
+  {
+    title: 'Distância e tempo de ciclo das rotas',
+    description:
+      'Rotas longas e permanência em clientes limitam quantas viagens um mesmo veículo consegue executar no período.',
+    tone: 'estrutural',
+  },
+];
 
   const juneOwn = executiveOwnVolume(june, 'june');
   const juneThirdParty = executiveThirdPartyVolume(june, 'june');
