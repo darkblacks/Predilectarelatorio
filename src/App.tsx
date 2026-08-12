@@ -3,23 +3,25 @@ import { AnimatePresence } from 'framer-motion';
 import { TopMenu } from './components/layout/TopMenu';
 import { SlideCapa } from './slides/SlideCapa';
 import { SlidePergunta } from './slides/SlidePergunta';
-import { SlideJunhoJulho } from './slides/SlideJunhoJulho';
+import { SlideEvolucaoMensal } from './slides/SlideEvolucaoMensal';
 import { SlideProdutividadeUnidades } from './slides/SlideProdutividadeUnidades';
 import { SlideMatrizProdutividade } from './slides/SlideMatrizProdutividade';
 import { SlidePicosOperacao } from './slides/SlidePicosOperacao';
 import { SlideOportunidades } from './slides/SlideOportunidades';
 import { SlideKPIs } from './slides/SlideKPIs';
+import { SlideAgradecimento } from './slides/SlideAgradecimento';
 import { useProductivityWorkbook } from './slides/useProductivityWorkbook';
 
 const labels = [
   'Produtividade',
   'Pergunta',
-  'Junho × Julho',
+  'Evolução mensal',
   'Por fábrica',
   'Matriz',
   'Picos',
   'Oportunidades',
   'KPIs',
+  'Agradecimento',
 ];
 
 function Loading() {
@@ -37,29 +39,30 @@ export default function App() {
   const {
     loading,
     error,
+    may,
     june,
     july,
-    comparisonJune,
-    comparisonJuly,
     units,
     daily,
     dailyByUnit,
     groupVehicles,
     metaTerceiros,
+    dataNotes,
   } = useProductivityWorkbook();
 
   const slides = useMemo(
     () => [
       <SlideCapa key="capa" />,
       <SlidePergunta key="pergunta" meta={metaTerceiros} june={june} july={july} units={units} />,
-      <SlideJunhoJulho key="junho-julho" june={comparisonJune} july={comparisonJuly} />,
-      <SlideProdutividadeUnidades key="produtividade-unidades" units={units} />,
+      <SlideEvolucaoMensal key="evolucao-mensal" may={may} june={june} july={july} />,
+      <SlideProdutividadeUnidades key="produtividade-unidades" units={units} dataNotes={dataNotes} />,
       <SlideMatrizProdutividade key="matriz" units={units} />,
       <SlidePicosOperacao key="picos" daily={daily} dailyByUnit={dailyByUnit} />,
       <SlideOportunidades key="oportunidades" units={units} />,
-      <SlideKPIs key="kpis" july={july} groupVehicles={groupVehicles} meta={metaTerceiros} />,
+      <SlideKPIs key="kpis" july={july} groupVehicles={groupVehicles} meta={metaTerceiros} dataNotes={dataNotes} />,
+      <SlideAgradecimento key="agradecimento" />,
     ],
-    [june, july, comparisonJune, comparisonJuly, units, daily, dailyByUnit, groupVehicles, metaTerceiros]
+    [may, june, july, units, daily, dailyByUnit, groupVehicles, metaTerceiros, dataNotes]
   );
 
   useEffect(() => {

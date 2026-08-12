@@ -11,14 +11,14 @@ export const META_TERCEIROS = 0.25;
  *
  * Mantemos o XLSX bruto sem alteração e aplicamos a regra somente na camada de leitura/apresentação.
  */
-export type ExecutiveComparisonPeriod = 'june' | 'july';
+export type ExecutiveComparisonPeriod = 'may' | 'june' | 'july';
 
 export function executiveOwnVolume(month: MonthSummary, period: ExecutiveComparisonPeriod): number {
-  return period === 'june' ? month.frota + month.transpredi : month.frota;
+  return period === 'july' ? month.frota : month.frota + month.transpredi;
 }
 
 export function executiveThirdPartyVolume(month: MonthSummary, period: ExecutiveComparisonPeriod): number {
-  return period === 'june' ? month.terceiro : month.transpredi + month.terceiro;
+  return period === 'july' ? month.transpredi + month.terceiro : month.terceiro;
 }
 
 export interface MonthSummary {
@@ -55,10 +55,9 @@ export interface DailySummary {
 export interface ProductivityWorkbookData {
   loading: boolean;
   error?: string;
+  may: MonthSummary;
   june: MonthSummary;
   july: MonthSummary;
-  comparisonJune: MonthSummary;
-  comparisonJuly: MonthSummary;
   units: UnitSummary[];
   daily: DailySummary[];
   dailyByUnit: Record<string, DailySummary[]>;
@@ -185,48 +184,6 @@ function sumRowRange(rows: unknown[][], rowIndex: number, startCol: number, endC
     total += num(rows[rowIndex]?.[col]);
   }
   return total;
-}
-
-/**
- * Lê o recorte comparável da aba "Comparativo Jun x Jul".
- * A planilha traz dois blocos PREDILECTA (Junho e Julho) e 17 dias em B:R.
- * Somamos os valores diários diretamente para não depender das fórmulas de TOTAL.
- */
-function readComparisonMonths(rows: unknown[][]): { comparisonJune: MonthSummary; comparisonJuly: MonthSummary } {
-  const starts = rows
-    .map((row, index) => ({ row, index }))
-    .filter(({ row }) => normalize(row?.[0]) === 'predilecta')
-    .map(({ index }) => index);
-
-  function readBlock(start: number | undefined, label: string): MonthSummary {
-    if (start === undefined) return emptyMonth(label);
-
-    const values = {
-      frota: 0,
-      transpredi: 0,
-      terceiro: 0,
-      fob: 0,
-    };
-
-    for (let rowIndex = start + 1; rowIndex <= start + 5 && rowIndex < rows.length; rowIndex += 1) {
-      const kind = normalize(rows[rowIndex]?.[0]);
-      if (kind === 'frota') values.frota = sumRowRange(rows, rowIndex, 1, 17);
-      if (kind === 'transpredi') values.transpredi = sumRowRange(rows, rowIndex, 1, 17);
-      if (kind === 'terceiros' || kind === 'terceiro') values.terceiro = sumRowRange(rows, rowIndex, 1, 17);
-      if (kind === 'fob') values.fob = sumRowRange(rows, rowIndex, 1, 17);
-    }
-
-    return {
-      label,
-      ...values,
-      total: values.frota + values.transpredi + values.terceiro + values.fob,
-    };
-  }
-
-  return {
-    comparisonJune: readBlock(starts[0], '01–17 Jun/26'),
-    comparisonJuly: readBlock(starts[1], '01–17 Jul/26'),
-  };
 }
 
 /**
@@ -429,10 +386,9 @@ function readDailyData(carregRows: unknown[][]): {
 export function useProductivityWorkbook(): ProductivityWorkbookData {
   const [data, setData] = useState<ProductivityWorkbookData>({
     loading: true,
+    may: emptyMonth('Maio/26'),
     june: emptyMonth('Junho/26'),
     july: emptyMonth('Julho/26'),
-    comparisonJune: emptyMonth('01–17 Jun/26'),
-    comparisonJuly: emptyMonth('01–17 Jul/26'),
     units: [],
     daily: [],
     dailyByUnit: {},
@@ -454,27 +410,20 @@ export function useProductivityWorkbook(): ProductivityWorkbookData {
 
         const analysisRows = sheetRows(workbook, 'Analise');
         const carregRows = sheetRows(workbook, 'Carreg Julho_26');
-        const comparisonRows = sheetRows(workbook, 'Comparativo Jun x Jul');
 
-        if (!analysisRows.length || !carregRows.length || !comparisonRows.length) {
-          throw new Error('O XLSX foi encontrado, mas uma das abas necessárias (Analise, Carreg Julho_26 ou Comparativo Jun x Jul) não existe.');
+        if (!analysisRows.length || !carregRows.length) {
+          throw new Error('O XLSX foi encontrado, mas as abas Analise e/ou Carreg Julho_26 não existem.');
         }
 
+        const may = readMonth(analysisRows, 'MAIO/26', 'Maio/26');
         const june = readMonth(analysisRows, 'JUNHO/26', 'Junho/26');
         const july = readMonth(analysisRows, 'JULHO/26', 'Julho/26');
-        const { comparisonJune, comparisonJuly } = readComparisonMonths(comparisonRows);
         const { units, groupVehicles, detailTotal } = readUnits(carregRows);
         const { daily, dailyByUnit } = readDailyData(carregRows);
 
-        if (june.total === 0 || july.total === 0) {
+        if (may.total === 0 || june.total === 0 || july.total === 0) {
           throw new Error(
-            'O XLSX foi aberto, mas os totais mensais de Junho/Julho não puderam ser calculados.'
-          );
-        }
-
-        if (comparisonJune.total === 0 || comparisonJuly.total === 0) {
-          throw new Error(
-            'O XLSX foi aberto, mas o recorte 01–17 de Junho/Julho não pôde ser calculado na aba Comparativo Jun x Jul.'
+            'O XLSX foi aberto, mas Maio/Junho/Julho não puderam ser calculados. Verifique se a estrutura da aba Analise foi alterada.'
           );
         }
 
@@ -497,10 +446,9 @@ export function useProductivityWorkbook(): ProductivityWorkbookData {
 
         setData({
           loading: false,
+          may,
           june,
           july,
-          comparisonJune,
-          comparisonJuly,
           units,
           daily,
           dailyByUnit,
