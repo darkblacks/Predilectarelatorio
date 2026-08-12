@@ -212,9 +212,9 @@ export function SlidePergunta({ meta, june, july, units }: SlidePerguntaProps) {
     tone: 'gerenciavel',
   },
   {
-    title: 'LOGISTICA REVERSA',
+    title: 'Logística reversa',
     description:
-      'Após realizar uma entrega, o caminhão pode aproveitar o retorno para fazer uma coleta e voltar carregado para a base. Isso pode aumentar o tempo de retorno e postergar sua disponibilidade para uma nova viagem, porém gera benefício para a empresa ao evitar o retorno vazio e executar uma operação logística que não está contabilizada nessas viagens.',
+      'Após a entrega, o caminhão aproveita o retorno para realizar uma coleta e voltar carregado à base. Isso pode aumentar o tempo de ciclo, mas reduz viagens vazias e gera valor para a operação.',
     tone: 'gerenciavel',
   },
   {
