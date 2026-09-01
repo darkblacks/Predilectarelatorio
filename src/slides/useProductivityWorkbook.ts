@@ -19,6 +19,7 @@ export interface MonthSummary {
   own: number;
   thirdParty: number;
   total: number;
+  vehicles: number;
 }
 
 export interface UnitSummary {
@@ -49,6 +50,7 @@ export interface DailySummary {
 export interface ProductivityWorkbookData {
   loading: boolean;
   error?: string;
+  months: MonthSummary[];
   may: MonthSummary;
   june: MonthSummary;
   july: MonthSummary;
@@ -69,6 +71,7 @@ function buildMonth(input: {
   fob: number;
   own?: number;
   thirdParty?: number;
+  vehicles?: number;
 }): MonthSummary {
   const transpredi = input.transpredi ?? 0;
   const transprediContratado = input.transprediContratado ?? 0;
@@ -85,6 +88,7 @@ function buildMonth(input: {
     own,
     thirdParty,
     total: own + thirdParty + input.fob,
+    vehicles: input.vehicles ?? 0,
   };
 }
 
@@ -96,6 +100,17 @@ export function executiveThirdPartyVolume(month: MonthSummary, _period: Executiv
   return month.thirdParty;
 }
 
+const fallbackMay = buildMonth({
+  label: 'Maio/26',
+  frota: 942,
+  transpredi: 139,
+  terceiro: 1025,
+  fob: 96,
+  own: 1081,
+  thirdParty: 1025,
+  vehicles: 129,
+});
+
 const fallbackJune = buildMonth({
   label: 'Junho/26',
   frota: 1024,
@@ -104,16 +119,19 @@ const fallbackJune = buildMonth({
   fob: 110,
   own: 1215,
   thirdParty: 828,
+  vehicles: 129,
 });
 
 const fallbackJuly = buildMonth({
   label: 'Julho/26',
   frota: 1344,
-  transpredi: 187,
+  transpredi: 0,
+  transprediContratado: 187,
   terceiro: 798,
   fob: 128,
   own: 1344,
   thirdParty: 985,
+  vehicles: 129,
 });
 
 const emptyMonth = (label: string): MonthSummary =>
@@ -126,6 +144,7 @@ const emptyMonth = (label: string): MonthSummary =>
     fob: 0,
     own: 0,
     thirdParty: 0,
+    vehicles: 0,
   });
 
 function num(value: unknown): number {
@@ -400,6 +419,7 @@ function readAugustWorkbook(workbook: XLSX.WorkBook): {
       own: totals.own,
       thirdParty: totals.thirdParty,
       total: totals.total,
+      vehicles: totals.vehicles,
     },
     units,
     daily,
@@ -411,8 +431,9 @@ function readAugustWorkbook(workbook: XLSX.WorkBook): {
 export function useProductivityWorkbook(): ProductivityWorkbookData {
   const [data, setData] = useState<ProductivityWorkbookData>({
     loading: true,
-    may: fallbackJune,
-    june: fallbackJuly,
+    months: [fallbackMay, fallbackJune, fallbackJuly, emptyMonth(CURRENT_MONTH_LABEL)],
+    may: fallbackMay,
+    june: fallbackJune,
     july: emptyMonth(CURRENT_MONTH_LABEL),
     units: [],
     daily: [],
@@ -440,8 +461,9 @@ export function useProductivityWorkbook(): ProductivityWorkbookData {
 
         setData({
           loading: false,
-          may: fallbackJune,
-          june: fallbackJuly,
+          months: [fallbackMay, fallbackJune, fallbackJuly, currentMonth],
+          may: fallbackMay,
+          june: fallbackJune,
           july: currentMonth,
           units,
           daily,

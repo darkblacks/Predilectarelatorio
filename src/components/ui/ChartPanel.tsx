@@ -30,6 +30,17 @@ function isPercentSeries(series: PercentSeries) {
   return series.custom?.recalculatePercent === true && Array.isArray(series.custom.rawValues);
 }
 
+function getLegendSelected(option: Record<string, unknown>): LegendSelected {
+  if (Array.isArray(option.legend)) {
+    return option.legend.reduce<LegendSelected>((acc, item) => ({
+      ...acc,
+      ...(((item as Record<string, unknown>).selected as LegendSelected | undefined) ?? {}),
+    }), {});
+  }
+
+  return ((option.legend as Record<string, unknown> | undefined)?.selected as LegendSelected | undefined) ?? {};
+}
+
 function buildPercentTooltip(params: unknown) {
   const items = Array.isArray(params) ? params : [params];
   const visibleItems = items.filter((item) => {
@@ -64,13 +75,15 @@ function recalculateVisiblePercent(option: Record<string, unknown>, selected: Le
 
   if (!percentSeries.length) return option;
 
+  const defaultSelected = getLegendSelected(option);
+  const effectiveSelected = { ...defaultSelected, ...selected };
   const maxLength = Math.max(...percentSeries.map((series) => series.custom?.rawValues?.length ?? 0));
   const fullTotals = Array.from({ length: maxLength }, (_, index) =>
     percentSeries.reduce((sum, series) => sum + Number(series.custom?.rawValues?.[index] ?? 0), 0)
   );
   const visibleTotals = Array.from({ length: maxLength }, (_, index) =>
     percentSeries.reduce((sum, series) => {
-      if (series.name && selected[series.name] === false) return sum;
+      if (series.name && effectiveSelected[series.name] === false) return sum;
       return sum + Number(series.custom?.rawValues?.[index] ?? 0);
     }, 0)
   );
@@ -80,14 +93,14 @@ function recalculateVisiblePercent(option: Record<string, unknown>, selected: Le
         ...(item as Record<string, unknown>),
         selected: {
           ...(((item as Record<string, unknown>).selected as LegendSelected | undefined) ?? {}),
-          ...selected,
+          ...effectiveSelected,
         },
       }))
     : {
         ...((option.legend as Record<string, unknown> | undefined) ?? {}),
         selected: {
           ...(((option.legend as Record<string, unknown> | undefined)?.selected as LegendSelected | undefined) ?? {}),
-          ...selected,
+          ...effectiveSelected,
         },
       };
 

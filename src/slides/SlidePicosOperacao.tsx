@@ -65,7 +65,7 @@ export function SlidePicosOperacao({ daily, dailyByUnit }: SlidePicosOperacaoPro
         ].join('<br/>');
       },
     },
-    legend: { bottom: 0, textStyle: { color: muted, fontWeight: 700 } },
+    legend: { bottom: 0, selected: { FOB: false }, textStyle: { color: muted, fontWeight: 700 } },
     grid: { left: 54, right: 22, top: 24, bottom: 62 },
     xAxis: {
       type: 'category',

@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { TopMenu } from './components/layout/TopMenu';
 
 import { SlideCapa } from './slides/SlideCapa';
-import { SlidePergunta } from './slides/SlidePergunta';
+import { SlideProdutividadeMensal } from './slides/SlideProdutividadeMensal';
 import { SlideEvolucaoMensal } from './slides/SlideEvolucaoMensal';
 import { SlideProdutividadeUnidades } from './slides/SlideProdutividadeUnidades';
 import { SlideMatrizProdutividade } from './slides/SlideMatrizProdutividade';
@@ -16,7 +16,7 @@ import { PRODUCTIVITY_DATA_LABEL, useProductivityWorkbook } from './slides/usePr
 
 const labels = [
   'Apresentação',
-  'Pergunta',
+  'Resultado Produtividade',
   'Resultado Mês a Mês',
   'Resultado por Fábrica',
   'Matriz',
@@ -46,8 +46,7 @@ export default function App() {
   const {
     loading,
     error,
-    may,
-    june,
+    months,
     july,
     units,
     daily,
@@ -63,19 +62,15 @@ export default function App() {
         key="capa"
       />,
 
-      <SlidePergunta
-        key="pergunta"
-        meta={metaTerceiros}
-        june={june}
-        july={july}
-        units={units}
+      <SlideProdutividadeMensal
+        key="produtividade-mensal"
+        months={months}
+        groupVehicles={groupVehicles}
       />,
 
       <SlideEvolucaoMensal
         key="evolucao-mensal"
-        may={may}
-        june={june}
-        july={july}
+        months={months}
       />,
 
       <SlideProdutividadeUnidades
@@ -107,8 +102,7 @@ export default function App() {
       />,
     ],
     [
-      may,
-      june,
+      months,
       july,
       units,
       daily,
