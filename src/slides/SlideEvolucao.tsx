@@ -1,25 +1,24 @@
 import { motion } from 'framer-motion';
 import { ChartPanel } from '../components/ui/ChartPanel';
-import { MetricCard } from '../components/ui/MetricCard';
 import { SlideWrapper } from '../components/layout/SlideWrapper';
 import { DailyRow } from '../types';
-import {
-  brNumber,
-  brPercent,
-  dayLabel,
-  filterDailyByMonth,
-  monthLabelTitle,
-  peakDaily,
-  share,
-  totalDaily,
-} from '../utils/metrics';
+import { dayLabel } from '../utils/metrics';
 
 interface SlideEvolucaoProps {
   rows: DailyRow[];
-  selectedMonth: string;
   meta: number;
+
+  /**
+   * Compatibilidade: se alguma versão antiga do App ainda passar essas props,
+   * o componente aceita, mas não usa.
+   */
+  monthlyRows?: unknown;
+  fleet?: unknown;
 }
 
+/**
+ * Animação padrão das seções da página.
+ */
 const reveal = {
   initial: { opacity: 0, y: 28 },
   whileInView: { opacity: 1, y: 0 },
@@ -27,156 +26,255 @@ const reveal = {
   transition: { duration: 0.45 },
 };
 
-export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps) {
-  const monthRows = filterDailyByMonth(rows, selectedMonth);
-  const totals = totalDaily(monthRows);
-  const thirdShare = share(totals.terceirosOperacional, totals.baseOperacional);
-  const peakTotal = peakDaily(monthRows, 'total');
-  const peakThird = peakDaily(monthRows, 'terceirosOperacional');
-  const activeDays = monthRows.filter((row) => row.total > 0).length;
-  const average = activeDays ? totals.total / activeDays : 0;
+/**
+ * Paleta pedida:
+ * Próprio + Transpredi = azul
+ * Terceiro = vermelho
+ * FOB = laranja
+ */
+const colorProprio = '#2563eb'; // azul
+const colorTerceiro = '#da0d0d'; // vermelho
+const colorFob = '#f59e0b'; // laranja
 
-  if (!monthRows.length) {
-    return (
-      <SlideWrapper
-        eyebrow="Evolução"
-        title="Evolução diária"
-        subtitle={`A aba Evolução não possui lançamentos para ${monthLabelTitle(selectedMonth)}.`}
-        footer="Inclua os dados diários na aba Evolução usando o mesmo padrão da planilha."
-      >
-        <div className="empty-state">
-          <img src="./assets/logo-predilecta.png" alt="Predilecta" />
-          <h2>Sem dados diários para este mês</h2>
-          <p>
-            O resultado mensal continua disponível. Para habilitar esta página, adicione os dias do mês
-            na aba <strong>Evolução</strong> da planilha.
-          </p>
-        </div>
-      </SlideWrapper>
-    );
-  }
+const pct = (value: number) => value * 100;
+const pctFmt = (value: number) => `${value.toFixed(1).replace('.', ',')}%`;
 
-  const optionDailyVolume = {
-    color: ['#2563eb', '#da0d0d', '#f59e0b'],
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { bottom: 0, textStyle: { color: '#675056', fontWeight: 700 } },
-    grid: { left: 48, right: 18, top: 28, bottom: 58 },
-    xAxis: {
-      type: 'category',
-      data: monthRows.map((row) => dayLabel(row.data)),
-      axisLabel: { interval: 2, rotate: 35 },
-      axisLine: { lineStyle: { color: '#ead5db' } },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: '#f3e2e6' } },
-    },
-    series: [
-      {
-        name: 'Frota',
-        type: 'bar',
-        stack: 'volume',
-        data: monthRows.map((row) => row.frotaOperacional),
-        itemStyle: { color: '#2563eb' },
-      },
-      {
-        name: 'Terceiros',
-        type: 'bar',
-        stack: 'volume',
-        data: monthRows.map((row) => row.terceirosOperacional),
-        itemStyle: { color: '#da0d0d' },
-      },
-      {
-        name: 'FOB',
-        type: 'bar',
-        stack: 'volume',
-        data: monthRows.map((row) => row.fob),
-        itemStyle: { color: '#f59e0b', borderRadius: [5, 5, 0, 0] },
-      },
-    ],
-  };
+function safeShare(value: number, total: number) {
+  return total === 0 ? 0 : value / total;
+}
 
-  const maxAccumulated = Math.max(
-    ...monthRows.map((row) => row.shareTerceirosAcumulado * 100),
-    meta * 100,
-  );
+/**
+ * Compatibilidade:
+ * Dependendo da versão do seu hook, o DailyRow pode vir com:
+ * - frota/transpredi/proprio/shareTerceiroAcumulado
+ * ou
+ * - interno/percTerceiroAcumulado
+ */
+type DailyRowCompat = DailyRow & {
+  frota?: number;
+  transpredi?: number;
+  proprio?: number;
+  interno?: number;
+  terceiro?: number;
+  fob?: number;
+  total?: number;
+  shareTerceiroAcumulado?: number;
+  percTerceiroAcumulado?: number;
+};
 
-  const optionAccumulated = {
-    color: ['#da0d0d'],
+function getProprio(row: DailyRowCompat) {
+  return Number(row.proprio ?? row.interno ?? ((row.frota ?? 0) + (row.transpredi ?? 0)));
+}
+
+function getTerceiro(row: DailyRowCompat) {
+  return Number(row.terceiro ?? 0);
+}
+
+function getCif(row: DailyRowCompat) {
+  return Number(row.fob ?? 0);
+}
+
+function getTotal(row: DailyRowCompat) {
+  const proprio = getProprio(row);
+  const terceiro = getTerceiro(row);
+  const cif = getCif(row);
+
+  return Number(row.total ?? proprio + terceiro + cif);
+}
+
+function getAcumuladoTerceiro(row: DailyRowCompat) {
+  return Number(row.shareTerceiroAcumulado ?? row.percTerceiroAcumulado ?? 0);
+}
+
+export function SlideEvolucao({ rows, meta }: SlideEvolucaoProps) {
+  /**
+   * Ordena os dias para garantir que o gráfico fique em ordem cronológica.
+   */
+  const ordered = [...rows].sort((a, b) => a.data.getTime() - b.data.getTime()) as DailyRowCompat[];
+
+  const labels = ordered.map((row) => dayLabel(row.data));
+
+  /**
+   * Pega o dia 29 para fazer o destaque piscando.
+   */
+  const day29 = ordered.find((row) => row.data.getDate() === 29);
+  const day29Label = day29 ? dayLabel(day29.data) : '29/06';
+
+  /**
+   * Base já em percentual para alimentar os gráficos.
+   * Frota + Transpredi ficam juntos em um único indicador:
+   * Próprio + Transpredi.
+   */
+  const composicaoDiaria = ordered.map((row) => {
+    const proprio = getProprio(row);
+    const terceiro = getTerceiro(row);
+    const cif = getCif(row);
+    const total = getTotal(row);
+
+    return {
+      label: dayLabel(row.data),
+      proprio: pct(safeShare(proprio, total)),
+      terceiro: pct(safeShare(terceiro, total)),
+      cif: pct(safeShare(cif, total)),
+      acumuladoTerceiro: pct(getAcumuladoTerceiro(row)),
+    };
+  });
+
+  const day29Data = composicaoDiaria.find((item) => item.label === day29Label);
+
+  /**
+   * Gráfico 1:
+   * Composição diária por modalidade.
+   * Apenas 3 linhas:
+   * - Próprio + Transpredi
+   * - Terceiro
+   * - FOB
+   */
+  const optionComposicaoDiaria = {
     tooltip: {
       trigger: 'axis',
-      valueFormatter: (value: number) => `${value.toFixed(1).replace('.', ',')}%`,
+      valueFormatter: (value: number) => pctFmt(value),
     },
-    grid: { left: 48, right: 24, top: 28, bottom: 54 },
+    legend: {
+      bottom: 0,
+      textStyle: { color: '#675056', fontWeight: 700 },
+    },
+    grid: {
+      left: 48,
+      right: 24,
+      top: 30,
+      bottom: 54,
+    },
     xAxis: {
       type: 'category',
-      data: monthRows.map((row) => dayLabel(row.data)),
-      axisLabel: { interval: 2, rotate: 35 },
+      data: labels,
+      axisLabel: { interval: 1 },
       axisLine: { lineStyle: { color: '#ead5db' } },
     },
     yAxis: {
       type: 'value',
       min: 0,
-      max: Math.max(50, Math.ceil(maxAccumulated / 10) * 10),
-      axisLabel: { formatter: '{value}%' },
-      splitLine: { lineStyle: { color: '#f3e2e6' } },
-    },
-    series: [
-      {
-        name: 'Terceiros acumulado',
-        type: 'line',
-        smooth: true,
-        symbolSize: 7,
-        data: monthRows.map((row) => row.shareTerceirosAcumulado * 100),
-        lineStyle: { width: 4, color: '#da0d0d' },
-        itemStyle: { color: '#da0d0d' },
-        areaStyle: { color: 'rgba(218, 13, 13, 0.08)' },
-        markLine: {
-          symbol: 'none',
-          lineStyle: { color: '#37a169', type: 'dashed', width: 2 },
-          label: { formatter: `Meta ${Math.round(meta * 100)}%`, color: '#37a169' },
-          data: [{ yAxis: meta * 100 }],
-        },
-      },
-    ],
-  };
-
-  const optionDailyShare = {
-    color: ['#da0d0d'],
-    tooltip: {
-      trigger: 'axis',
-      valueFormatter: (value: number) => `${value.toFixed(1).replace('.', ',')}%`,
-    },
-    grid: { left: 48, right: 24, top: 28, bottom: 54 },
-    xAxis: {
-      type: 'category',
-      data: monthRows.map((row) => dayLabel(row.data)),
-      axisLabel: { interval: 2, rotate: 35 },
-      axisLine: { lineStyle: { color: '#ead5db' } },
-    },
-    yAxis: {
-      type: 'value',
       max: 100,
       axisLabel: { formatter: '{value}%' },
       splitLine: { lineStyle: { color: '#f3e2e6' } },
     },
     series: [
       {
-        name: '% terceiros no dia',
-        type: 'bar',
-        data: monthRows.map((row) => ({
-          value: row.shareTerceirosDia * 100,
-          itemStyle: {
-            color: row.shareTerceirosDia <= meta ? '#37a169' : '#da0d0d',
-            borderRadius: [6, 6, 0, 0],
-          },
-        })),
+        name: 'Próprio + Transpredi',
+        type: 'line',
+        smooth: true,
+        symbolSize: 6,
+        data: composicaoDiaria.map((item) => item.proprio),
+        lineStyle: { width: 4, color: colorProprio },
+        itemStyle: { color: colorProprio },
+      },
+      {
+        name: 'Terceiro',
+        type: 'line',
+        smooth: true,
+        symbolSize: 6,
+        data: composicaoDiaria.map((item) => item.terceiro),
+        lineStyle: { width: 4, color: colorTerceiro },
+        itemStyle: { color: colorTerceiro },
+      },
+      {
+        name: 'FOB',
+        type: 'line',
+        smooth: true,
+        symbolSize: 6,
+        data: composicaoDiaria.map((item) => item.cif),
+        lineStyle: { width: 4, color: colorFob },
+        itemStyle: { color: colorFob },
+      },
+      {
+        name: 'Dia 29',
+        type: 'effectScatter',
+        coordinateSystem: 'cartesian2d',
+        symbolSize: 20,
+        rippleEffect: {
+          brushType: 'stroke',
+          scale: 4,
+          period: 1.2,
+        },
+        itemStyle: { color: colorTerceiro },
+        data: day29Data ? [[day29Label, day29Data.terceiro]] : [],
+        z: 10,
+      },
+    ],
+  };
+
+  /**
+   * Gráfico 2:
+   * Percentual acumulado de terceiros.
+   * Também destaca o dia 29 com ponto piscando.
+   */
+  const optionTerceirosAcumulado = {
+    tooltip: {
+      trigger: 'axis',
+      valueFormatter: (value: number) => pctFmt(value),
+    },
+    legend: {
+      bottom: 0,
+      textStyle: { color: '#675056', fontWeight: 700 },
+    },
+    grid: {
+      left: 48,
+      right: 24,
+      top: 30,
+      bottom: 54,
+    },
+    xAxis: {
+      type: 'category',
+      data: labels,
+      axisLabel: { interval: 1 },
+      axisLine: { lineStyle: { color: '#ead5db' } },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      max: 50,
+      axisLabel: { formatter: '{value}%' },
+      splitLine: { lineStyle: { color: '#f3e2e6' } },
+    },
+    series: [
+      {
+        name: '% de terceiros acumulado',
+        type: 'line',
+        smooth: true,
+        symbolSize: 7,
+        data: composicaoDiaria.map((item) => item.acumuladoTerceiro),
+        lineStyle: { width: 4, color: colorTerceiro },
+        itemStyle: { color: colorTerceiro },
+        areaStyle: { color: 'rgba(218, 13, 13, 0.08)' },
         markLine: {
+          silent: true,
           symbol: 'none',
-          lineStyle: { color: '#37a169', type: 'dashed', width: 2 },
-          label: { formatter: `Meta ${Math.round(meta * 100)}%`, color: '#37a169' },
+          label: {
+            formatter: `Meta ${Math.round(meta * 100)}%`,
+            color: '#7c6570',
+            fontWeight: 900,
+          },
+          lineStyle: {
+            color: '#8b5e34',
+            width: 3,
+            type: 'dashed',
+          },
           data: [{ yAxis: meta * 100 }],
         },
+      },
+      {
+        name: 'Dia 29',
+        type: 'effectScatter',
+        coordinateSystem: 'cartesian2d',
+        symbolSize: 22,
+        rippleEffect: {
+          brushType: 'stroke',
+          scale: 4,
+          period: 1.2,
+        },
+        itemStyle: { color: colorTerceiro },
+        data: day29Data ? [[day29Label, day29Data.acumuladoTerceiro]] : [],
+        z: 10,
       },
     ],
   };
@@ -185,83 +283,37 @@ export function SlideEvolucao({ rows, selectedMonth, meta }: SlideEvolucaoProps)
     <SlideWrapper
       eyebrow="Evolução"
       title="Evolução diária"
-      subtitle={`Ritmo operacional da unidade Predilecta em ${monthLabelTitle(selectedMonth)}.`}
-      footer="Frota x Terceiros. Desde julho/2026, Transpredi integra terceiros; FOB fica fora do percentual."
+      subtitle="Leitura percentual diária da operação em junho/26."
     >
       <div className="story-page">
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
-            <span className="pill">Ritmo do mês</span>
-            <h2>O acumulado mostra a trajetória do indicador</h2>
-            <p>Volume diário e participação de terceiros sobre a base operacional.</p>
-          </div>
-
-          <div className="metric-grid">
-            <MetricCard
-              label="Total no mês"
-              value={brNumber.format(totals.total)}
-              helper={`${activeDays} dias com movimento`}
-              tone="brand"
-            />
-            <MetricCard
-              label="Terceiros"
-              value={brPercent.format(thirdShare)}
-              helper={`${brNumber.format(totals.terceirosOperacional)} carregamentos · inclui Transpredi`}
-              tone={thirdShare <= meta ? 'good' : 'alert'}
-            />
-            <MetricCard
-              label="Média por dia ativo"
-              value={average.toFixed(1).replace('.', ',')}
-              helper="Carregamentos totais"
-              tone="neutral"
-            />
-            <MetricCard
-              label="Pico diário"
-              value={peakTotal ? brNumber.format(peakTotal.total) : '—'}
-              helper={peakTotal ? dayLabel(peakTotal.data) : 'Sem movimento'}
-              tone="neutral"
-            />
+            <span className="pill">Evolução</span>
+            <h2>Composição diária por modalidade</h2>
+            <p>Próprio + Transpredi, Terceiro e FOB.</p>
           </div>
 
           <ChartPanel
-            title="Volume diário por grupo"
-            subtitle="Frota, terceiros e FOB"
-            option={optionDailyVolume}
-            height={430}
+            title="Composição diária por modalidade"
+            subtitle="Percentual diário por modalidade. O dia 29/jun está destacado."
+            option={optionComposicaoDiaria}
+            height={440}
           />
         </motion.section>
 
         <motion.section className="story-section" {...reveal}>
           <div className="story-section__heading">
             <span className="pill">Indicador</span>
-            <h2>O acumulado encerrou em {brPercent.format(thirdShare)}</h2>
-            <p>A linha tracejada representa a meta de terceiros sobre Frota + Terceiros.</p>
+            <h2>% de terceiros acumulado</h2>
+            <p>A linha mostra o acumulado do mês comparado com a meta.</p>
           </div>
-          <div className="charts-grid charts-grid--two">
-            <ChartPanel
-              title="Participação acumulada de terceiros"
-              subtitle="O indicador reinicia a cada mês"
-              option={optionAccumulated}
-              height={390}
-            />
-            <ChartPanel
-              title="Participação diária de terceiros"
-              subtitle="Dias verdes ficaram dentro da meta"
-              option={optionDailyShare}
-              height={390}
-            />
-          </div>
-          <div className="insight-row">
-            <div className="insight-box">
-              <strong>Maior uso de terceiros:</strong>{' '}
-              {peakThird
-                ? `${brNumber.format(peakThird.terceirosOperacional)} carregamentos em ${dayLabel(peakThird.data)}.`
-                : 'Sem dados.'}
-            </div>
-            <div className="insight-box">
-              <strong>Frota:</strong> {brNumber.format(totals.frotaOperacional)} carregamentos no detalhamento diário.
-            </div>
-          </div>
+
+          <ChartPanel
+            title="% de terceiros acumulado"
+            subtitle="A linha tracejada representa a meta de terceiros."
+            option={optionTerceirosAcumulado}
+            height={440}
+          />
         </motion.section>
       </div>
     </SlideWrapper>

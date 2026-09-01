@@ -12,17 +12,16 @@ export interface DailyRow {
   cliente: string;
   frota: number;
   transpredi: number;
+  proprio: number;
   terceiro: number;
   fob: number;
-  frotaOperacional: number;
-  terceirosOperacional: number;
-  baseOperacional: number;
   total: number;
   shareFrotaDia: number;
   shareTransprediDia: number;
-  shareTerceirosDia: number;
+  shareProprioDia: number;
+  shareTerceiroDia: number;
   shareFobDia: number;
-  shareTerceirosAcumulado: number;
+  shareTerceiroAcumulado: number;
 }
 
 export interface TruckRow {
@@ -44,8 +43,6 @@ export interface WorkbookData {
   daily: DailyRow[];
   trucks: TruckRow[];
   metaTerceiros: number;
-  sourceName: string;
-  loadLocalFile: (file: File) => Promise<void>;
 }
 
 export interface MetricCardProps {

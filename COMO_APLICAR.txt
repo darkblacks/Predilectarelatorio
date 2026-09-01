@@ -1,0 +1,17 @@
+ZIP atualizado com a página Plano de ação revisada.
+
+Principais alterações:
+- Layout com texto à esquerda e bloco visual/cubo animado à direita.
+- Textos quebrados em blocos menores para evitar parágrafos esticados.
+- Motion entrando da direita para a esquerda, em vez de só movimento vertical.
+- Indicadores principais usando % como valor principal.
+- Pontos percentuais ficaram na legenda/subtítulo, exemplo: +7,3 p.p.
+- SlideResultado atualizado para mostrar Redução/Aumento como ganho percentual no valor principal.
+
+Para aplicar manualmente, substitua a pasta do projeto pelos arquivos deste ZIP ou copie os arquivos:
+- src/slides/SlidePlanoAcao.tsx
+- src/slides/SlideResultado.tsx
+
+Depois rode:
+npm install
+npm run dev
