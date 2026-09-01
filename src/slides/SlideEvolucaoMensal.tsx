@@ -188,7 +188,7 @@ export function SlideEvolucaoMensal({ months }: SlideEvolucaoMensalProps) {
     <SlideWrapper
       eyebrow="Evolução mensal"
       title="Resultado mês a mês"
-      subtitle="Própria e Terceiro em base sem FOB; FOB acompanhado separado para não distorcer a produtividade."
+      subtitle="Própria x Terceiro em base sem FOB, mantendo a produtividade por caminhão como métrica central."
       footer={`Dashboard Operacional Predilecta · ${current?.label ?? ''}`}
     >
       <div className="story-page">
@@ -248,7 +248,7 @@ export function SlideEvolucaoMensal({ months }: SlideEvolucaoMensalProps) {
             />
             <ChartPanel
               title="Participação correta"
-              subtitle="FOB inicia desmarcado; ao alternar a legenda, os percentuais recalculam pela base visível."
+              subtitle="Próprio x Terceiro abre como leitura principal; a legenda recalcula a base visível."
               option={optionShares}
               height={350}
             />
@@ -261,7 +261,7 @@ export function SlideEvolucaoMensal({ months }: SlideEvolucaoMensalProps) {
               <span>Mês</span>
               <span>Total</span>
               <span>% Própria</span>
-              <span>% FOB</span>
+              <span>% Terceiro</span>
               <span>Viagens/veículo</span>
             </div>
 
@@ -283,15 +283,12 @@ export function SlideEvolucaoMensal({ months }: SlideEvolucaoMensalProps) {
                   <span>{item.label}</span>
                   <span>{brNumber.format(item.total)}</span>
                   <span>{pct(item.ownShare)}</span>
-                  <span>{pct(item.fobShare)}</span>
+                  <span>{pct(item.thirdPartyShare)}</span>
                   <span>{brDecimal.format(item.productivity)}</span>
                 </div>
               ))}
             </div>
 
-            <p style={{ color: muted, fontWeight: 740, lineHeight: 1.45, margin: '14px 0 0' }}>
-              Regra aplicada: Própria = Frota + Transpredi próprio; Terceiro = Transpredi contratado + Terceiros; participação própria/terceiro usa base sem FOB.
-            </p>
           </div>
         </motion.section>
       </div>
