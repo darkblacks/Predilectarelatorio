@@ -10,6 +10,7 @@ import { SlideProdutividadeUnidades } from './slides/SlideProdutividadeUnidades'
 import { SlideMatrizProdutividade } from './slides/SlideMatrizProdutividade';
 import { SlidePicosOperacao } from './slides/SlidePicosOperacao';
 import { SlideKPIs } from './slides/SlideKPIs';
+import { SlideGestaoHistorica, SlideCustos, SlidePlanejamento, SlideTerceirizacao } from './slides/SlideGestaoV4';
 import { SlideAgradecimento } from './slides/SlideAgradecimento';
 
 import { PRODUCTIVITY_DATA_LABEL, useProductivityWorkbook } from './slides/useProductivityWorkbook';
@@ -22,6 +23,10 @@ const labels = [
   'Matriz',
   'Picos',
   'KPIs',
+  'Evolução Gerencial',
+  'Custos e Eficiência',
+  'Planejamento',
+  'Terceirização',
   'Agradecimento',
 ];
 
@@ -97,6 +102,10 @@ export default function App() {
         dataNotes={dataNotes}
       />,
 
+      <SlideGestaoHistorica key="historico-v4" /> ,
+      <SlideCustos key="custos-v4" /> ,
+      <SlidePlanejamento key="planejamento-v4" /> ,
+      <SlideTerceirizacao key="terceirizacao-v4" current={july} /> ,
       <SlideAgradecimento
         key="agradecimento"
       />,

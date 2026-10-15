@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 
-export const PRODUCTIVITY_DATA_FILE = '/data/Controle_Aproveitamento_Frota_Agosto_2026_v3.xlsx';
-export const PRODUCTIVITY_DATA_LABEL = 'Controle_Aproveitamento_Frota_Agosto_2026_v3.xlsx';
-export const CURRENT_MONTH_LABEL = 'Agosto/26';
-export const CURRENT_MONTH_LONG_LABEL = 'Agosto/2026';
+export const PRODUCTIVITY_DATA_FILE = '/data/Controle_Aproveitamento_Frota_Setembro_2026.xlsx';
+export const PRODUCTIVITY_DATA_LABEL = 'Controle_Aproveitamento_Frota_Setembro_2026.xlsx';
+export const CURRENT_MONTH_LABEL = 'Setembro/26';
+export const CURRENT_MONTH_LONG_LABEL = 'Setembro/2026';
 export const META_TERCEIROS = 0.25;
 
 export type ExecutiveComparisonPeriod = 'may' | 'june' | 'july';
@@ -133,6 +133,8 @@ const fallbackJuly = buildMonth({
   thirdParty: 985,
   vehicles: 129,
 });
+
+const fallbackAugust = buildMonth({ label: 'Agosto/26', frota: 0, transpredi: 0, transprediContratado: 0, terceiro: 0, fob: 0, vehicles: 0 });
 
 const emptyMonth = (label: string): MonthSummary =>
   buildMonth({
@@ -431,7 +433,7 @@ function readAugustWorkbook(workbook: XLSX.WorkBook): {
 export function useProductivityWorkbook(): ProductivityWorkbookData {
   const [data, setData] = useState<ProductivityWorkbookData>({
     loading: true,
-    months: [fallbackMay, fallbackJune, fallbackJuly, emptyMonth(CURRENT_MONTH_LABEL)],
+    months: [fallbackMay, fallbackJune, fallbackJuly, emptyMonth("Agosto/26"), emptyMonth(CURRENT_MONTH_LABEL)],
     may: fallbackMay,
     june: fallbackJune,
     july: emptyMonth(CURRENT_MONTH_LABEL),
@@ -454,14 +456,22 @@ export function useProductivityWorkbook(): ProductivityWorkbookData {
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
         const { currentMonth, units, daily, dailyByUnit, groupVehicles } = readAugustWorkbook(workbook);
+        let august = fallbackAugust;
+        try {
+          const augustResponse = await fetch('/data/Controle_Aproveitamento_Frota_Agosto_2026_v3.xlsx');
+          if (augustResponse.ok) {
+            const augustBook = XLSX.read(await augustResponse.arrayBuffer(), { type: 'array', cellDates: true });
+            august = { ...readAugustWorkbook(augustBook).currentMonth, label: 'Agosto/26' };
+          }
+        } catch { /* exibe a base disponível sem criar valores artificiais */ }
 
         if (currentMonth.total === 0 || !units.length || !daily.length) {
-          throw new Error('O XLSX foi aberto, mas os dados de agosto não puderam ser calculados.');
+          throw new Error('O XLSX foi aberto, mas os dados de setembro não puderam ser calculados.');
         }
 
         setData({
           loading: false,
-          months: [fallbackMay, fallbackJune, fallbackJuly, currentMonth],
+          months: [fallbackMay, fallbackJune, fallbackJuly, august, currentMonth],
           may: fallbackMay,
           june: fallbackJune,
           july: currentMonth,
